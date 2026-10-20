@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10fingerstyping – kurz psaní všemi deseti</title>
+<meta name="description" content="Naučte se psát všemi deseti prsty. Kurz psaní pro běžné uživatele i pro školy.">
+<link rel="stylesheet" href="style.css?v=2">
+<script>
+  (function(){
+    var t = localStorage.getItem('theme');
+    if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="#"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+    <div class="header-right">
+      <nav>
+        <a href="#pro-koho" data-i18n="nav.who">Pro koho</a>
+        <a href="#funkce" data-i18n="nav.features">Funkce</a>
+        <a href="#skoly" data-i18n="nav.schools">Školy</a>
+      </nav>
+      <div class="lang">
+        <button type="button" class="lang-toggle" id="langToggle" aria-haspopup="true" aria-expanded="false">
+          <span id="langCurrent">CZ</span>
+          <span class="lang-caret">▾</span>
+        </button>
+        <ul class="lang-menu" id="langMenu" role="menu">
+          <li><button type="button" class="lang-btn is-active" data-lang="cs" role="menuitem">Čeština (CZ)</button></li>
+          <li><button type="button" class="lang-btn" data-lang="en" role="menuitem">English (EN)</button></li>
+        </ul>
+      </div>
+      <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
+      <button class="login" id="loginBtn" type="button" data-i18n="nav.login">Přihlásit se</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="eyebrow" data-i18n="hero.eyebrow">Kurz psaní všemi deseti</div>
+    <h1 data-i18n="hero.title">Pište rychleji a efektivně</h1>
+    <p data-i18n="hero.text">10fingerstyping je jednoduchý program, který vás naučí psát všemi deseti prsty správně a bez chyb.</p>
+    <a class="btn" href="#" id="startBtn" data-i18n="hero.cta">Začít psát</a>
+    <div class="btn-note" data-i18n="hero.note">Zatím se připravuje – brzy spustíme.</div>
+  </div>
+</div>
+
+<section id="pro-koho" class="band">
+  <div class="wrap">
+    <h2 data-i18n="who.title">Pro každého, kdo chce psát rychleji</h2>
+    <p class="lead" data-i18n="who.lead">Ať už píšete jednou za týden, nebo denně, pravidelný trénink vám pomůže ušetřit čas.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag" data-i18n="who.c1tag">Běžní uživatelé</span>
+        <h3 data-i18n="who.c1title">Pro domácí i pracovní psaní</h3>
+        <p data-i18n="who.c1text">Vhodné pro každého, kdo si chce zlepšit rychlost a přesnost psaní. Cviky se přizpůsobí vaší úrovni, takže začátečníci i pokročilí si přijdou na své.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="who.c2tag">Školy</span>
+        <h3 data-i18n="who.c2title">Pro výuku na základních i středních školách</h3>
+        <p data-i18n="who.c2text">Učitelé mohou zadávat testy celé třídě a sledovat pokrok žáků. Jednoduché ovládání, žádné složité nastavování.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkce" class="band">
+  <div class="wrap">
+    <h2 data-i18n="feat.title">Co v aplikaci najdete</h2>
+    <p class="lead" data-i18n="feat.lead">Několik cest, jak se naučit psát – nebo si to jen zpříjemnit.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag" data-i18n="feat.c1tag">Klasické učení</span>
+        <h3 data-i18n="feat.c1title">Lekce krok za krokem</h3>
+        <p data-i18n="feat.c1text">Postupné lekce od základního postavení prstů až po psaní celých textů. Každá lekce staví na té předchozí, takže se učíte plynule a bez přeskakování. Uvidíte svou rychlost i přesnost.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="feat.c2tag">Učení hrou</span>
+        <h3 data-i18n="feat.c2title">Hry a procvičování</h3>
+        <p data-i18n="feat.c2text">Kdo se nudí u tabulky, může si psaní procvičit hravou formou. Hry rozvíjejí stejné návyky jako lekce, ale zábavněji – ideální pro děti i pro dospělé, kteří chtějí zpestření.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="feat.c3tag">Rozvržení klávesnice</span>
+        <h3 data-i18n="feat.c3title">QWERTZ i QWERTY</h3>
+        <p data-i18n="feat.c3text">Aplikace umí obě rozvržení klávesnice. Můžete si kdykoli přepnout mezi QWERTZ a QWERTY podle toho, na co jste zvyklí nebo co používáte ve škole.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="feat.c4tag">Jazyk</span>
+        <h3 data-i18n="feat.c4title">Čeština i angličtina</h3>
+        <p data-i18n="feat.c4text">Procvičovat můžete v češtině i v angličtině. Stačí v aplikaci přepnout jazyk a texty i klávesnice se přizpůsobí zvolenému jazyku.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skoly" class="band">
+  <div class="wrap">
+    <h2 data-i18n="ver.title">Dvě verze aplikace</h2>
+    <p class="lead" data-i18n="ver.lead">Aplikace je připravená pro běžné uživatele i pro školy.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag" data-i18n="ver.c1tag">Pro běžné uživatele</span>
+        <h3 data-i18n="ver.c1title">Pro domácí i pracovní psaní</h3>
+        <p data-i18n="ver.c1text">Vhodné pro každého, kdo si chce zlepšit rychlost a přesnost psaní. Cviky se přizpůsobí vaší úrovni, takže začátečníci i pokročilí si přijdou na své.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="ver.c2tag">Pro školy</span>
+        <h3 data-i18n="ver.c2title">Pro výuku na základních i středních školách</h3>
+        <p data-i18n="ver.c2text">Učitelé mohou zadávat lekce a testy celé třídě a sledovat pokrok žáků. Jednoduché ovládání, žádné složité nastavování.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="#"><span class="logo-num">10</span><span class="logo-mid">finger</span><span class="logo-rest">styping</span></a>
+      <p data-i18n="footer.tagline">Naučte se psát všemi deseti – pro domov, práci i školu.</p>
+    </div>
+    <div class="footer-links">
+      <a href="ochrana-osobnich-udaju.html" data-i18n="footer.privacy">Ochrana osobních údajů</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© 2026 10fingerstyping</span>
+  </div>
+</footer>
+
+<div id="toast" data-i18n="toast.soon">Aplikace se připravuje, brzy bude spuštěna.</div>
+
+<script>
+  var i18n = {
+    cs: {
+      "nav.who":"Pro koho","nav.features":"Funkce","nav.schools":"Školy","nav.login":"Přihlásit se",
+      "hero.eyebrow":"Kurz psaní všemi deseti",
+      "hero.title":"Pište rychleji a efektivně",
+      "hero.text":"10fingerstyping je jednoduchý program, který vás naučí psát všemi deseti prsty správně a bez chyb.",
+      "hero.cta":"Začít psát","hero.note":"Zatím se připravuje – brzy spustíme.",
+      "who.title":"Pro každého, kdo chce psát rychleji",
+      "who.lead":"Ať už píšete jednou za týden, nebo denně, pravidelný trénink vám pomůže ušetřit čas.",
+      "who.c1tag":"Běžní uživatelé","who.c1title":"Pro domácí i pracovní psaní",
+      "who.c1text":"Vhodné pro každého, kdo si chce zlepšit rychlost a přesnost psaní. Cviky se přizpůsobí vaší úrovni, takže začátečníci i pokročilí si přijdou na své.",
+      "who.c2tag":"Školy","who.c2title":"Pro výuku na základních i středních školách",
+      "who.c2text":"Učitelé mohou zadávat testy celé třídě a sledovat pokrok žáků. Jednoduché ovládání, žádné složité nastavování.",
+      "feat.title":"Co v aplikaci najdete",
+      "feat.lead":"Několik cest, jak se naučit psát – nebo si to jen zpříjemnit.",
+      "feat.c1tag":"Klasické učení","feat.c1title":"Lekce krok za krokem",
+      "feat.c1text":"Postupné lekce od základního postavení prstů až po psaní celých textů. Každá lekce staví na té předchozí, takže se učíte plynule a bez přeskakování. Uvidíte svou rychlost i přesnost.",
+      "feat.c2tag":"Učení hrou","feat.c2title":"Hry a procvičování",
+      "feat.c2text":"Kdo se nudí u tabulky, může si psaní procvičit hravou formou. Hry rozvíjejí stejné návyky jako lekce, ale zábavněji – ideální pro děti i pro dospělé, kteří chtějí zpestření.",
+      "feat.c3tag":"Rozvržení klávesnice","feat.c3title":"QWERTZ i QWERTY",
+      "feat.c3text":"Aplikace umí obě rozvržení klávesnice. Můžete si kdykoli přepnout mezi QWERTZ a QWERTY podle toho, na co jste zvyklí nebo co používáte ve škole.",
+      "feat.c4tag":"Jazyk","feat.c4title":"Čeština i angličtina",
+      "feat.c4text":"Procvičovat můžete v češtině i v angličtině. Stačí v aplikaci přepnout jazyk a texty i klávesnice se přizpůsobí zvolenému jazyku.",
+      "ver.title":"Dvě verze aplikace",
+      "ver.lead":"Aplikace je připravená pro běžné uživatele i pro školy.",
+      "ver.c1tag":"Pro běžné uživatele","ver.c1title":"Pro domácí i pracovní psaní",
+      "ver.c1text":"Vhodné pro každého, kdo si chce zlepšit rychlost a přesnost psaní. Cviky se přizpůsobí vaší úrovni, takže začátečníci i pokročilí si přijdou na své.",
+      "ver.c2tag":"Pro školy","ver.c2title":"Pro výuku na základních i středních školách",
+      "ver.c2text":"Učitelé mohou zadávat lekce a testy celé třídě a sledovat pokrok žáků. Jednoduché ovládání, žádné složité nastavování.",
+      "footer.tagline":"Naučte se psát všemi deseti – pro domov, práci i školu.",
+      "footer.privacy":"Ochrana osobních údajů",
+      "toast.soon":"Aplikace se připravuje, brzy bude spuštěna.",
+      "toast.login":"Přihlašování zatím není dostupné."
+    },
+    en: {
+      "nav.who":"For whom","nav.features":"Features","nav.schools":"Schools","nav.login":"Log in",
+      "hero.eyebrow":"Touch typing course",
+      "hero.title":"Type faster and more efficiently",
+      "hero.text":"10fingerstyping is a simple program that teaches you to type with all ten fingers correctly and without mistakes.",
+      "hero.cta":"Start typing","hero.note":"Still in the works – launching soon.",
+      "who.title":"For anyone who wants to type faster",
+      "who.lead":"Whether you type once a week or every day, regular practice will save you time.",
+      "who.c1tag":"Everyday users","who.c1title":"For home and work typing",
+      "who.c1text":"Suitable for anyone who wants to improve their typing speed and accuracy. Exercises adapt to your level, so beginners and advanced users alike will benefit.",
+      "who.c2tag":"Schools","who.c2title":"For teaching at primary and secondary schools",
+      "who.c2text":"Teachers can assign tests to a whole class and track student progress. Simple controls, no complicated setup.",
+      "feat.title":"What you'll find in the app",
+      "feat.lead":"Several ways to learn typing – or just make it more fun.",
+      "feat.c1tag":"Classic learning","feat.c1title":"Lesson by lesson",
+      "feat.c1text":"Progressive lessons from basic finger placement to typing full texts. Each lesson builds on the previous one, so you learn smoothly without skipping. You'll see your speed and accuracy.",
+      "feat.c2tag":"Learning by play","feat.c2title":"Games and practice",
+      "feat.c2text":"If drills bore you, you can practise typing in a playful way. Games build the same habits as lessons, just more fun – ideal for children and adults who want variety.",
+      "feat.c3tag":"Keyboard layout","feat.c3title":"QWERTZ and QWERTY",
+      "feat.c3text":"The app supports both keyboard layouts. You can switch between QWERTZ and QWERTY at any time, depending on what you're used to or what you use at school.",
+      "feat.c4tag":"Language","feat.c4title":"Czech and English",
+      "feat.c4text":"You can practise in Czech or English. Just switch the language in the app and the texts and keyboard adapt to the selected language.",
+      "ver.title":"Two versions of the app",
+      "ver.lead":"The app is ready for everyday users and for schools.",
+      "ver.c1tag":"For everyday users","ver.c1title":"For home and work typing",
+      "ver.c1text":"Suitable for anyone who wants to improve their typing speed and accuracy. Exercises adapt to your level, so beginners and advanced users alike will benefit.",
+      "ver.c2tag":"For schools","ver.c2title":"For teaching at primary and secondary schools",
+      "ver.c2text":"Teachers can assign lessons and tests to a whole class and track student progress. Simple controls, no complicated setup.",
+      "footer.tagline":"Learn to type with all ten fingers – for home, work and school.",
+      "footer.privacy":"Privacy policy",
+      "toast.soon":"The app is in the works, launching soon.",
+      "toast.login":"Logging in isn't available yet."
+    }
+  };
+
+  function applyLang(lang){
+    var dict = i18n[lang] || i18n.cs;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(dict[key]) el.textContent = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+      b.classList.toggle('is-active', b.getAttribute('data-lang') === lang);
+    });
+    var cur = document.getElementById('langCurrent');
+    if(cur) cur.textContent = lang.toUpperCase();
+    localStorage.setItem('lang', lang);
+  }
+
+  var toast = document.getElementById('toast');
+  var timer;
+  function notify(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+  function tMsg(key){
+    var lang = localStorage.getItem('lang') || 'cs';
+    return (i18n[lang] && i18n[lang][key]) || i18n.cs[key];
+  }
+
+  document.getElementById('startBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    notify(tMsg('toast.soon'));
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', function(){
+    notify(tMsg('toast.login'));
+  });
+
+  var langToggle = document.getElementById('langToggle');
+  var langMenu = document.getElementById('langMenu');
+  function closeLangMenu(){
+    langMenu.classList.remove('open');
+    langToggle.setAttribute('aria-expanded', 'false');
+  }
+  langToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = langMenu.classList.toggle('open');
+    langToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    if(!document.querySelector('.lang').contains(e.target)) closeLangMenu();
+  });
+
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      applyLang(b.getAttribute('data-lang'));
+      closeLangMenu();
+    });
+  });
+
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('theme', t);
+  }
+  themeBtn.addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+
+  applyLang(localStorage.getItem('lang') || 'cs');
+</script>
+
+</body>
+</html>
