@@ -120,8 +120,13 @@ h1{font-size:44px;line-height:1.15;letter-spacing:-.5px;margin-bottom:18px}
 .btn-note{font-size:14px;color:var(--muted);margin-top:12px}
 @media(max-width:640px){h1{font-size:32px}.hero{padding:48px 0 40px}}
 
-.band{border-top:1px solid var(--line)}
+.band{position:relative}
 .band:nth-of-type(even){background:var(--band)}
+.band::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:min(1040px,calc(100% - 40px));height:0;
+  border-top:1px solid var(--line);
+}
 
 section{padding:64px 0}
 section > h2{position:relative;padding-bottom:16px;margin-bottom:12px}
