@@ -16,3 +16,11 @@ _site/
 # counterproductive to check this file into the repository.
 # Details at https://github.com/github/pages-gem/issues/768
 Gemfile.lock
+
+# Server: databáze a virtuální prostředí
+server/*.db
+server/*.db-journal
+server/*.db-wal
+server/__pycache__/
+server/venv/
+__pycache__/

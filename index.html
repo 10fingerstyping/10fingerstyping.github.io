@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>10fingerstyping – kurz psaní všemi deseti</title>
 <meta name="description" content="Naučte se psát všemi deseti prsty. Kurz psaní pro běžné uživatele i pro školy.">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=11">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -36,7 +36,7 @@
         </ul>
       </div>
       <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
-      <button class="login" id="loginBtn" type="button" data-i18n="nav.login">Přihlásit se</button>
+      <a class="login" id="loginBtn" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
     </div>
   </header>
 
@@ -119,15 +119,12 @@
 <footer>
   <div class="wrap footer-inner">
     <div class="footer-brand">
-      <a class="logo" href="#"><span class="logo-num">10</span><span class="logo-mid">finger</span><span class="logo-rest">styping</span></a>
+      <a class="logo" href="#"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
       <p data-i18n="footer.tagline">Naučte se psát všemi deseti – pro domov, práci i školu.</p>
     </div>
     <div class="footer-links">
       <a href="ochrana-osobnich-udaju.html" data-i18n="footer.privacy">Ochrana osobních údajů</a>
     </div>
-  </div>
-  <div class="wrap footer-bottom">
-    <span>© 2026 10fingerstyping</span>
   </div>
 </footer>
 
@@ -165,8 +162,7 @@
       "ver.c2text":"Učitelé mohou zadávat lekce a testy celé třídě a sledovat pokrok žáků. Jednoduché ovládání, žádné složité nastavování.",
       "footer.tagline":"Naučte se psát všemi deseti – pro domov, práci i školu.",
       "footer.privacy":"Ochrana osobních údajů",
-      "toast.soon":"Aplikace se připravuje, brzy bude spuštěna.",
-      "toast.login":"Přihlašování zatím není dostupné."
+      "toast.soon":"Aplikace se připravuje, brzy bude spuštěna."
     },
     en: {
       "nav.who":"For whom","nav.features":"Features","nav.schools":"Schools","nav.login":"Log in",
@@ -198,8 +194,7 @@
       "ver.c2text":"Teachers can assign lessons and tests to a whole class and track student progress. Simple controls, no complicated setup.",
       "footer.tagline":"Learn to type with all ten fingers – for home, work and school.",
       "footer.privacy":"Privacy policy",
-      "toast.soon":"The app is in the works, launching soon.",
-      "toast.login":"Logging in isn't available yet."
+      "toast.soon":"The app is in the works, launching soon."
     }
   };
 
@@ -234,10 +229,6 @@
   document.getElementById('startBtn').addEventListener('click', function(e){
     e.preventDefault();
     notify(tMsg('toast.soon'));
-  });
-
-  document.getElementById('loginBtn').addEventListener('click', function(){
-    notify(tMsg('toast.login'));
   });
 
   var langToggle = document.getElementById('langToggle');

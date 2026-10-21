@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Přihlášení – 10fingerstyping</title>
+<meta name="description" content="Přihlaste se nebo si vytvořte účet v aplikaci 10fingerstyping.">
+<link rel="stylesheet" href="style.css?v=11">
+<script>
+  (function(){
+    var t = localStorage.getItem('theme');
+    if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+    <div class="header-right">
+      <nav>
+        <a href="index.html#pro-koho" data-i18n="nav.who">Pro koho</a>
+        <a href="index.html#funkce" data-i18n="nav.features">Funkce</a>
+        <a href="index.html#skoly" data-i18n="nav.schools">Školy</a>
+      </nav>
+      <div class="lang">
+        <button type="button" class="lang-toggle" id="langToggle" aria-haspopup="true" aria-expanded="false">
+          <span id="langCurrent">CZ</span>
+          <span class="lang-caret">▾</span>
+        </button>
+        <ul class="lang-menu" id="langMenu" role="menu">
+          <li><button type="button" class="lang-btn is-active" data-lang="cs" role="menuitem">Čeština (CZ)</button></li>
+          <li><button type="button" class="lang-btn" data-lang="en" role="menuitem">English (EN)</button></li>
+        </ul>
+      </div>
+      <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
+      <a class="login" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
+    </div>
+  </header>
+</div>
+
+<div class="wrap">
+  <div class="auth">
+    <h1 id="authTitle" data-i18n="auth.loginTitle">Přihlášení</h1>
+    <p class="auth-sub" id="authSub" data-i18n="auth.loginSub">Vyberte, kdo se přihlašuje.</p>
+
+    <div class="roles" id="roles">
+      <button type="button" class="role is-active" data-role="user">
+        <span class="role-title" data-i18n="auth.roleUser">Běžný uživatel</span>
+        <span class="role-desc" data-i18n="auth.roleUserDesc">Učím se psát sám</span>
+      </button>
+      <button type="button" class="role" data-role="student" disabled>
+        <span class="role-title" data-i18n="auth.roleStudent">Žák</span>
+        <span class="role-desc" data-i18n="auth.roleStudentDesc">Brzy dostupné</span>
+      </button>
+      <button type="button" class="role" data-role="teacher" disabled>
+        <span class="role-title" data-i18n="auth.roleTeacher">Učitel</span>
+        <span class="role-desc" data-i18n="auth.roleTeacherDesc">Brzy dostupné</span>
+      </button>
+    </div>
+
+    <form id="authForm" novalidate>
+      <div class="field" id="fieldName" style="display:none">
+        <label for="name" data-i18n="auth.name">Uživatelské jméno</label>
+        <input type="text" id="name" name="name" autocomplete="username" data-i18n-ph="auth.namePh" placeholder="uživatelské jméno">
+      </div>
+
+      <div class="field" id="fieldSchool" style="display:none">
+        <label for="school" data-i18n="auth.school">Škola</label>
+        <input type="text" id="school" name="school" data-i18n-ph="auth.schoolPh" placeholder="Název školy nebo kód">
+      </div>
+
+      <div class="field">
+        <label for="email" data-i18n="auth.email">E-mail</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="e-mail">
+      </div>
+
+      <div class="field">
+        <label for="password" data-i18n="auth.password">Heslo</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••">
+        <div class="hint" id="passwordHint" style="display:none" data-i18n="auth.passwordHint">Alespoň 8 znaků.</div>
+      </div>
+
+      <div class="field" id="fieldConfirm" style="display:none">
+        <label for="confirm" data-i18n="auth.confirm">Heslo znovu</label>
+        <input type="password" id="confirm" name="confirm" autocomplete="new-password" placeholder="••••••••">
+      </div>
+
+      <button class="btn" type="submit" id="submitBtn" data-i18n="auth.submitLogin">Přihlásit se</button>
+    </form>
+
+    <p class="auth-switch">
+      <span id="switchText" data-i18n="auth.noAccount">Nemáte účet?</span>
+      <a href="#" id="switchLink" data-i18n="auth.registerLink">Zaregistrujte se</a>
+    </p>
+
+  </div>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+      <p data-i18n="footer.tagline">Naučte se psát všemi deseti – pro domov, práci i školu.</p>
+    </div>
+    <div class="footer-links">
+      <a href="index.html" data-i18n="footer.home">Zpět na úvod</a>
+      <a href="ochrana-osobnich-udaju.html" data-i18n="footer.privacy">Ochrana osobních údajů</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+  var i18n = {
+    cs: {
+      "nav.who":"Pro koho","nav.features":"Funkce","nav.schools":"Školy","nav.login":"Přihlásit se",
+      "auth.loginTitle":"Přihlášení","auth.loginSub":"Vyberte, kdo se přihlašuje.",
+      "auth.registerTitle":"Registrace","auth.registerSub":"Vytvořte si účet podle toho, kdo jste.",
+      "auth.roleUser":"Běžný uživatel","auth.roleUserDesc":"Učím se psát sám",
+      "auth.roleStudent":"Žák","auth.roleStudentDesc":"Brzy dostupné",
+      "auth.roleTeacher":"Učitel","auth.roleTeacherDesc":"Brzy dostupné",
+      "auth.name":"Uživatelské jméno","auth.namePh":"uživatelské jméno",
+      "auth.school":"Škola","auth.schoolPh":"Název školy nebo kód",
+      "auth.email":"E-mail","auth.password":"Heslo","auth.passwordHint":"Alespoň 8 znaků.",
+      "auth.confirm":"Heslo znovu",
+      "auth.submitLogin":"Přihlásit se","auth.submitRegister":"Zaregistrovat se",
+      "auth.noAccount":"Nemáte účet?","auth.haveAccount":"Už máte účet?",
+      "auth.registerLink":"Zaregistrujte se","auth.loginLink":"Přihlaste se",
+      "auth.noteUser":"Stačí jméno, e-mail a heslo. Účet běžného uživatele je zdarma.",
+      "auth.noteStudent":"Použijte účet, který vám vytvořila škola.",
+      "auth.noteTeacher":"Účet učitele propojíme se školou pro vedení tříd.",
+      "auth.needName":"Zadejte prosím uživatelské jméno.",
+      "auth.needEmail":"Zadejte prosím e-mail.",
+      "auth.badEmail":"Zadejte prosím e-mail ve správném tvaru (např. jan@email.cz).",
+      "auth.needPassword":"Zadejte prosím heslo.",
+      "auth.shortPassword":"Heslo musí mít alespoň 8 znaků.",
+      "auth.noMatch":"Hesla se neshodují.",
+      "auth.needSchool":"Zadejte prosím školu nebo kód.",
+      "auth.doneLogin":"Přihlášení proběhlo úspěšně.",
+      "auth.doneRegister":"Registrace proběhla úspěšně.",
+      "auth.serverError":"Nepodařilo se spojit se serverem. Zkuste to prosím později.",
+      "footer.tagline":"Naučte se psát všemi deseti – pro domov, práci i školu.",
+      "footer.home":"Zpět na úvod","footer.privacy":"Ochrana osobních údajů"
+    },
+    en: {
+      "nav.who":"For whom","nav.features":"Features","nav.schools":"Schools","nav.login":"Log in",
+      "auth.loginTitle":"Log in","auth.loginSub":"Choose who is signing in.",
+      "auth.registerTitle":"Sign up","auth.registerSub":"Create an account based on who you are.",
+      "auth.roleUser":"Everyday user","auth.roleUserDesc":"Learning on my own",
+      "auth.roleStudent":"Student","auth.roleStudentDesc":"Coming soon",
+      "auth.roleTeacher":"Teacher","auth.roleTeacherDesc":"Coming soon",
+      "auth.name":"Username","auth.namePh":"username",
+      "auth.school":"School","auth.schoolPh":"School name or code",
+      "auth.email":"E-mail","auth.password":"Password","auth.passwordHint":"At least 8 characters.",
+      "auth.confirm":"Repeat password",
+      "auth.submitLogin":"Log in","auth.submitRegister":"Sign up",
+      "auth.noAccount":"Don't have an account?","auth.haveAccount":"Already have an account?",
+      "auth.registerLink":"Sign up","auth.loginLink":"Log in",
+      "auth.noteUser":"Just a name, e-mail and password. An everyday user account is free.",
+      "auth.noteStudent":"Use the account created for you by your school.",
+      "auth.noteTeacher":"A teacher account links to a school for managing classes.",
+      "auth.needName":"Please enter your username.",
+      "auth.needEmail":"Please enter your e-mail.",
+      "auth.badEmail":"Please enter a valid e-mail (e.g. john@email.com).",
+      "auth.needPassword":"Please enter your password.",
+      "auth.shortPassword":"Password must be at least 8 characters.",
+      "auth.noMatch":"Passwords don't match.",
+      "auth.needSchool":"Please enter the school or code.",
+      "auth.doneLogin":"You have logged in successfully.",
+      "auth.doneRegister":"You have signed up successfully.",
+      "auth.serverError":"Couldn't reach the server. Please try again later.",
+      "footer.tagline":"Learn to type with all ten fingers – for home, work and school.",
+      "footer.home":"Back to home","footer.privacy":"Privacy policy"
+    }
+  };
+
+  var state = { mode: 'login', role: 'user' };
+  var roleNotes = { user: 'auth.noteUser', student: 'auth.noteStudent', teacher: 'auth.noteTeacher' };
+
+  function applyLang(lang){
+    var dict = i18n[lang] || i18n.cs;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(dict[key]) el.textContent = dict[key];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-ph');
+      if(dict[key]) el.placeholder = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+      b.classList.toggle('is-active', b.getAttribute('data-lang') === lang);
+    });
+    var cur = document.getElementById('langCurrent');
+    if(cur) cur.textContent = lang.toUpperCase();
+    localStorage.setItem('lang', lang);
+    renderLabels();
+  }
+
+  function tMsg(key){
+    var lang = localStorage.getItem('lang') || 'cs';
+    return (i18n[lang] && i18n[lang][key]) || i18n.cs[key];
+  }
+
+  function setText(sel, key){
+    var el = document.querySelector(sel);
+    if(el) el.textContent = tMsg(key);
+  }
+
+  function renderLabels(){
+    setText('#authTitle', state.mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle');
+    setText('#authSub', state.mode === 'login' ? 'auth.loginSub' : 'auth.registerSub');
+    setText('#submitBtn', state.mode === 'login' ? 'auth.submitLogin' : 'auth.submitRegister');
+    setText('#switchText', state.mode === 'login' ? 'auth.noAccount' : 'auth.haveAccount');
+    setText('#switchLink', state.mode === 'login' ? 'auth.registerLink' : 'auth.loginLink');
+    setText('#roleNote', roleNotes[state.role]);
+    document.getElementById('fieldName').style.display =
+      (state.mode === 'register') ? '' : 'none';
+    document.getElementById('fieldSchool').style.display =
+      (state.mode === 'register' && (state.role === 'student' || state.role === 'teacher')) ? '' : 'none';
+    document.getElementById('fieldConfirm').style.display =
+      (state.mode === 'register') ? '' : 'none';
+    document.getElementById('passwordHint').style.display =
+      (state.mode === 'register') ? '' : 'none';
+  }
+
+  document.querySelectorAll('.role').forEach(function(b){
+    b.addEventListener('click', function(){
+      if(b.disabled) return;
+      state.role = b.getAttribute('data-role');
+      document.querySelectorAll('.role').forEach(function(x){
+        x.classList.toggle('is-active', x === b);
+      });
+      renderLabels();
+    });
+  });
+
+  document.getElementById('switchLink').addEventListener('click', function(e){
+    e.preventDefault();
+    state.mode = state.mode === 'login' ? 'register' : 'login';
+    renderLabels();
+  });
+
+  var toast = document.getElementById('toast');
+  var timer;
+  function notify(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  var API_BASE = window.API_BASE || "/api";
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  document.getElementById('authForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('name').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var school = document.getElementById('school').value.trim();
+    var confirm = document.getElementById('confirm').value;
+    var submitBtn = document.getElementById('submitBtn');
+
+    if(state.mode === 'register' && !name){ notify(tMsg('auth.needName')); return; }
+    if(!email){ notify(tMsg('auth.needEmail')); return; }
+    if(!emailRe.test(email)){ notify(tMsg('auth.badEmail')); return; }
+    if(!password){ notify(tMsg('auth.needPassword')); return; }
+    if(state.mode === 'register'){
+      if(password.length < 8){ notify(tMsg('auth.shortPassword')); return; }
+      if(password !== confirm){ notify(tMsg('auth.noMatch')); return; }
+      if((state.role === 'student' || state.role === 'teacher') && !school){
+        notify(tMsg('auth.needSchool')); return;
+      }
+    }
+
+    var url = state.mode === 'register' ? API_BASE + '/register' : API_BASE + '/login';
+    var payload = state.mode === 'register'
+      ? { username: name, email: email, password: password, role: state.role }
+      : { email: email, password: password };
+
+    submitBtn.disabled = true;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(res){ return res.json().then(function(body){ return { ok: res.ok, body: body }; }); })
+      .then(function(r){
+        if(r.ok && r.body.ok){
+          notify(tMsg(state.mode === 'register' ? 'auth.doneRegister' : 'auth.doneLogin'));
+        } else {
+          notify((r.body && r.body.error) || tMsg('auth.serverError'));
+        }
+      })
+      .catch(function(){ notify(tMsg('auth.serverError')); })
+      .finally(function(){ submitBtn.disabled = false; });
+  });
+
+  var langToggle = document.getElementById('langToggle');
+  var langMenu = document.getElementById('langMenu');
+  function closeLangMenu(){
+    langMenu.classList.remove('open');
+    langToggle.setAttribute('aria-expanded', 'false');
+  }
+  langToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = langMenu.classList.toggle('open');
+    langToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    if(!document.querySelector('.lang').contains(e.target)) closeLangMenu();
+  });
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      applyLang(b.getAttribute('data-lang'));
+      closeLangMenu();
+    });
+  });
+
+  var themeBtn = document.getElementById('themeBtn');
+  themeBtn.addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  applyLang(localStorage.getItem('lang') || 'cs');
+</script>
+
+</body>
+</html>

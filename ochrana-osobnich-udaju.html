@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ochrana osobních údajů – 10fingerstyping</title>
 <meta name="description" content="Zásady ochrany osobních údajů webu 10fingerstyping.">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=11">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -36,7 +36,7 @@
         </ul>
       </div>
       <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
-      <button class="login" id="loginBtn" type="button" data-i18n="nav.login">Přihlásit se</button>
+      <a class="login" id="loginBtn" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
     </div>
   </header>
 </div>
@@ -66,15 +66,12 @@
 <footer>
   <div class="wrap footer-inner">
     <div class="footer-brand">
-      <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">finger</span><span class="logo-rest">styping</span></a>
+      <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
       <p>Naučte se psát všemi deseti – pro domov, práci i školu.</p>
     </div>
     <div class="footer-links">
       <a href="index.html">Zpět na úvod</a>
     </div>
-  </div>
-  <div class="wrap footer-bottom">
-    <span>© 2026 10fingerstyping</span>
   </div>
 </footer>
 
@@ -119,10 +116,6 @@
     clearTimeout(timer);
     timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
   }
-
-  document.getElementById('loginBtn').addEventListener('click', function(){
-    notify(tMsg('toast.login'));
-  });
 
   var langToggle = document.getElementById('langToggle');
   var langMenu = document.getElementById('langMenu');
