@@ -13,7 +13,7 @@ které ji mohou využívat při výuce.
   nebo požadavků školy.
 - **Dva jazyky** – procvičování v češtině i angličtině.
 - **Dvě verze** – samostatná verze pro běžné uživatele a verze pro školy, kde
-  učitelé zadávaj9 a testy celé třídě a sledují pokrok žáků.
+  učitelé zadávají lekce a testy celé třídě a sledují pokrok žáků.
 
 ## Stav projektu
 
