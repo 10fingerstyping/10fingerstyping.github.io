@@ -254,7 +254,7 @@
     timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
   }
 
-  var API_BASE = window.API_BASE || "/api";
+  var API_BASE = window.API_BASE || "http://141.147.57.55/api";
   var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   document.getElementById('authForm').addEventListener('submit', function(e){
@@ -293,6 +293,11 @@
       .then(function(r){
         if(r.ok && r.body.ok){
           notify(tMsg(state.mode === 'register' ? 'auth.doneRegister' : 'auth.doneLogin'));
+          try {
+            localStorage.setItem('user', JSON.stringify(r.body.user));
+            localStorage.setItem('loggedIn', '1');
+          } catch(e){}
+          setTimeout(function(){ window.location.href = 'index.html'; }, 800);
         } else {
           notify((r.body && r.body.error) || tMsg('auth.serverError'));
         }

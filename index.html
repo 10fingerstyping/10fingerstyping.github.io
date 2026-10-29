@@ -37,6 +37,10 @@
       </div>
       <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
       <a class="login" id="loginBtn" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
+      <div id="userMenu" class="user-menu" style="display:none; align-items:center; gap:10px;">
+        <span id="userName" style="font-weight:600;"></span>
+        <button id="logoutBtn" type="button" class="login">Odhlásit se</button>
+      </div>
     </div>
   </header>
 
@@ -264,6 +268,27 @@
   });
 
   applyLang(localStorage.getItem('lang') || 'cs');
+
+  (function(){
+    var loginBtn = document.getElementById('loginBtn');
+    var userMenu = document.getElementById('userMenu');
+    var userName = document.getElementById('userName');
+    var logoutBtn = document.getElementById('logoutBtn');
+    try {
+      var u = JSON.parse(localStorage.getItem('user') || 'null');
+      if(u && (u.username || u.email)){
+        if(loginBtn) loginBtn.style.display = 'none';
+        if(userMenu) userMenu.style.display = 'flex';
+        if(userName) userName.textContent = u.username || u.email;
+      }
+    } catch(e){}
+    if(logoutBtn){
+      logoutBtn.addEventListener('click', function(){
+        try { localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
+        window.location.href = 'index.html';
+      });
+    }
+  })();
 </script>
 
 </body>
