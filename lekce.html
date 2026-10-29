@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lekce – 10fingerstyping</title>
+<meta name="description" content="Lekce psaní všemi deseti.">
+<link rel="stylesheet" href="style.css?v=12">
+<script>
+  (function(){
+    var t = localStorage.getItem('theme');
+    if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+    <div class="header-right">
+      <nav>
+        <a href="index.html#pro-koho">Pro koho</a>
+        <a href="index.html#funkce">Funkce</a>
+        <a href="index.html#skoly">Školy</a>
+      </nav>
+      <div class="lang">
+        <button type="button" class="lang-toggle" id="langToggle" aria-haspopup="true" aria-expanded="false">
+          <span id="langCurrent">CZ</span>
+          <span class="lang-caret">▾</span>
+        </button>
+        <ul class="lang-menu" id="langMenu" role="menu">
+          <li><button type="button" class="lang-btn is-active" data-lang="cs" role="menuitem">Čeština (CZ)</button></li>
+          <li><button type="button" class="lang-btn" data-lang="en" role="menuitem">English (EN)</button></li>
+        </ul>
+      </div>
+      <button class="toggle" id="themeBtn" type="button">◐</button>
+      <a class="login" id="loginBtn" href="prihlaseni.html">Přihlásit se</a>
+      <div id="userMenu" class="user-menu" style="display:none;">
+        <button id="userBtn" class="user-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar" id="userAvatar">U</span>
+          <span id="userName">Uživatel</span>
+          <span style="font-size:10px;color:var(--muted)">▾</span>
+        </button>
+        <div id="userDropdown" class="user-dropdown">
+          <button id="goLessonsBtn" type="button">Moje lekce</button>
+          <button id="logoutBtn" type="button">Odhlásit se</button>
+        </div>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div class="wrap" style="max-width:980px;">
+  <section style="padding:40px 0 20px 0;">
+    <h1 style="font-size:38px;letter-spacing:-.02em;margin-bottom:6px;">Lekce</h1>
+    <p style="color:var(--muted);font-size:18px;">Vyber si lekci a začni trénovat psaní všemi deseti.</p>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:40px;">
+    <article class="card" style="opacity:.6;position:relative;">
+      <span class="tag">Lekce 1</span>
+      <h3>Základní řada</h3>
+      <p style="color:var(--muted);">Postavení prstů a první písmena. <strong>Zatím nedostupné</strong></p>
+    </article>
+    <article class="card" style="opacity:.6;position:relative;">
+      <span class="tag">Lekce 2</span>
+      <h3>Horní řada</h3>
+      <p style="color:var(--muted);">Rozšíření o další písmena. <strong>Zatím nedostupné</strong></p>
+    </article>
+    <article class="card" style="opacity:.6;position:relative;">
+      <span class="tag">Lekce 3</span>
+      <h3>Dolní řada</h3>
+      <p style="color:var(--muted);">Dokončení abecedy. <strong>Zatím nedostupné</strong></p>
+    </article>
+    <article class="card" style="opacity:.6;position:relative;">
+      <span class="tag">Hry</span>
+      <h3>Rychlostní hry</h3>
+      <p style="color:var(--muted);">Procvičení hravou formou. <strong>Zatím nedostupné</strong></p>
+    </article>
+  </section>
+
+  <section style="margin-bottom:60px;">
+    <h2 style="font-size:28px;margin-bottom:12px;">Liga a žebříček</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+      <div class="card">
+        <h3 style="margin-bottom:6px;">Týdenní liga</h3>
+        <p style="color:var(--muted);">Boduj za trénink, postupuj mezi ligami. <strong>Zatím nedostupné</strong></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:6px;">Žebříček</h3>
+        <p style="color:var(--muted);">Porovnej své výsledky s ostatními. <strong>Zatím nedostupné</strong></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:6px;">Nastavení</h3>
+        <p style="color:var(--muted);">Jazyk, rozložení klávesnice, motivace. <strong>Zatím nedostupné</strong></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+      <p>Naučte se psát všemi deseti – pro domov, práci i školu.</p>
+    </div>
+    <div class="footer-links">
+      <a href="ochrana-osobnich-udaju.html">Ochrana osobních údajů</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var loginBtn = document.getElementById('loginBtn');
+  var userMenu = document.getElementById('userMenu');
+  var userName = document.getElementById('userName');
+  var userAvatar = document.getElementById('userAvatar');
+  var userBtn = document.getElementById('userBtn');
+  var userDropdown = document.getElementById('userDropdown');
+  var logoutBtn = document.getElementById('logoutBtn');
+  var goLessonsBtn = document.getElementById('goLessonsBtn');
+  try {
+    var u = JSON.parse(localStorage.getItem('user') || 'null');
+    if(!u || !(u.username || u.email)){
+      window.location.href = 'prihlaseni.html';
+      return;
+    }
+    if(loginBtn) loginBtn.style.display = 'none';
+    if(userMenu) userMenu.style.display = 'block';
+    var name = u.username || u.email;
+    if(userName) userName.textContent = name;
+    if(userAvatar) userAvatar.textContent = (name.charAt(0)||'U').toUpperCase();
+  } catch(e){
+    window.location.href = 'prihlaseni.html';
+    return;
+  }
+  if(userBtn && userDropdown){
+    userBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = userDropdown.classList.toggle('open');
+      userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function(e){
+      if(userMenu && !userMenu.contains(e.target)){
+        userDropdown.classList.remove('open');
+        if(userBtn) userBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', function(){
+      try { localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
+      window.location.href = 'index.html';
+    });
+  }
+  if(goLessonsBtn){
+    goLessonsBtn.addEventListener('click', function(){
+      window.location.href = 'lekce.html';
+    });
+  }
+})();
+</script>
+</body>
+</html>

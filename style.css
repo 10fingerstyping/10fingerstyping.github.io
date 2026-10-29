@@ -252,3 +252,30 @@ footer{
   font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:10;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.user-menu{position:relative}
+.user-btn{
+  display:flex;align-items:center;gap:8px;
+  font:inherit;font-size:14px;font-weight:600;
+  padding:6px 12px;border:1px solid var(--line);border-radius:var(--radius);
+  background:transparent;color:var(--ink);cursor:pointer;
+}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:var(--btn-ink);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;
+}
+.user-dropdown{
+  position:absolute;top:calc(100% + 6px);right:0;z-index:30;
+  min-width:160px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:0 12px 30px rgba(0,0,0,.16);
+  display:none;padding:6px;
+}
+.user-dropdown.open{display:block}
+.user-dropdown button{
+  width:100%;text-align:left;font:inherit;font-size:14px;
+  padding:8px 10px;border:0;background:transparent;color:var(--ink);
+  border-radius:4px;cursor:pointer;
+}
+.user-dropdown button:hover{background:var(--info)}

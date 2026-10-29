@@ -36,7 +36,18 @@
         </ul>
       </div>
       <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
-      <a class="login" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
+      <a class="login" id="loginBtn" href="prihlaseni.html" data-i18n="nav.login">Přihlásit se</a>
+      <div id="userMenu" class="user-menu" style="display:none;">
+        <button id="userBtn" class="user-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar" id="userAvatar">U</span>
+          <span id="userName">Uživatel</span>
+          <span style="font-size:10px;color:var(--muted)">▾</span>
+        </button>
+        <div id="userDropdown" class="user-dropdown">
+          <button id="goLessonsBtn" type="button">Moje lekce</button>
+          <button id="logoutBtn" type="button">Odhlásit se</button>
+        </div>
+      </div>
     </div>
   </header>
 </div>
@@ -336,6 +347,51 @@
   });
 
   applyLang(localStorage.getItem('lang') || 'cs');
+
+  (function(){
+    var loginBtn = document.getElementById('loginBtn');
+    var userMenu = document.getElementById('userMenu');
+    var userName = document.getElementById('userName');
+    var userAvatar = document.getElementById('userAvatar');
+    var userBtn = document.getElementById('userBtn');
+    var userDropdown = document.getElementById('userDropdown');
+    var logoutBtn = document.getElementById('logoutBtn');
+    var goLessonsBtn = document.getElementById('goLessonsBtn');
+    try {
+      var u = JSON.parse(localStorage.getItem('user') || 'null');
+      if(u && (u.username || u.email)){
+        if(loginBtn) loginBtn.style.display = 'none';
+        if(userMenu) userMenu.style.display = 'block';
+        var name = u.username || u.email;
+        if(userName) userName.textContent = name;
+        if(userAvatar) userAvatar.textContent = (name.charAt(0)||'U').toUpperCase();
+      }
+    } catch(e){}
+    if(userBtn && userDropdown){
+      userBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var open = userDropdown.classList.toggle('open');
+        userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function(e){
+        if(userMenu && !userMenu.contains(e.target)){
+          userDropdown.classList.remove('open');
+          if(userBtn) userBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if(logoutBtn){
+      logoutBtn.addEventListener('click', function(){
+        try { localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
+        window.location.href = 'index.html';
+      });
+    }
+    if(goLessonsBtn){
+      goLessonsBtn.addEventListener('click', function(){
+        window.location.href = 'lekce.html';
+      });
+    }
+  })();
 </script>
 
 </body>
