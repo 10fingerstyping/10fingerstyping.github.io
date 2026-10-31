@@ -241,7 +241,7 @@
     e.preventDefault();
     try {
       var u = JSON.parse(localStorage.getItem('user') || 'null');
-      if(u && (u.username || u.email)){
+      if(u && (u.username || u.email) && localStorage.getItem('token')){
         window.location.href = 'lekce.html';
         return;
       }
@@ -294,7 +294,7 @@
     var goLessonsBtn = document.getElementById('goLessonsBtn');
     try {
       var u = JSON.parse(localStorage.getItem('user') || 'null');
-      if(u && (u.username || u.email)){
+      if(u && (u.username || u.email) && localStorage.getItem('token')){
         if(loginBtn) loginBtn.style.display = 'none';
         if(userMenu) userMenu.style.display = 'block';
         var name = u.username || u.email;
@@ -317,7 +317,7 @@
     }
     if(logoutBtn){
       logoutBtn.addEventListener('click', function(){
-        try { localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
+        try { localStorage.removeItem('token'); localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
         window.location.href = 'index.html';
       });
     }
