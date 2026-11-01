@@ -1,0 +1,46 @@
+1. tábor	Písmeno 'j', klávesa [mezera] a písmeno 'f'
+2. tábor	Písmeno 'u'
+3. tábor	Písmeno 'r'
+4. tábor	Písmeno 'n'
+5. tábor	Písmeno 'v'
+6. tábor	Písmeno 't'
+7. tábor	Písmeno 'z'
+8. tábor	Písmeno 'd'
+9. tábor	Písmeno 'e'
+10. tábor	Písmeno 'k'
+11. tábor	Písmeno 'i'
+12. tábor	Písmeno 's' a klávesa Backspace
+13. tábor	Písmeno 'l'
+14. tábor	Písmeno 'o'
+15. tábor	Písmeno 'a'
+16. tábor	Písmeno 'h'
+17. tábor	Písmeno 'c'
+18. tábor	Znak , [čárka]
+19. tábor	Písmeno 'b'
+20. tábor	Písmeno 'm'
+21. tábor	Klávesa levý Shift a klávesa pravý Shift
+22. tábor	Znak . [tečka]
+23. tábor	Písmeno 'p'
+24. tábor	Písmeno 'y'
+25. tábor	Písmeno 'á'
+26. tábor	Písmeno 'í'
+27. tábor	Písmeno 'ě'
+28. tábor	Písmeno 'é'
+29. tábor	Písmeno 'ř'
+30. tábor	Písmeno 'ý'
+31. tábor	Písmeno 'č'
+32. tábor	Písmeno 'ů' a klávesa Enter
+33. tábor	Písmeno 'š'
+34. tábor	Písmeno 'ž'
+35. tábor	Písmeno 'ú'
+36. tábor	Písmeno 'g'
+37. tábor	Znak ´ [délka]
+38. tábor	Číslovka 1
+39. tábor	Písmeno 'x'
+40. tábor	Znak - [pomlčka, mínus]
+41. tábor	Písmeno 'w'
+42. tábor	Znak = [rovnítko]
+43. tábor	Písmeno 'q'
+44. tábor	Klávesa ( [levá závorka]
+45. tábor	Znak ? [otazník] a klávesa " [uvozovky]
+46. tábor	Znak § [paragraf]

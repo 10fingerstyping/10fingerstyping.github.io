@@ -11,8 +11,8 @@ přihlášení a ukládání pokroku.
   (Werkzeug PBKDF2).
 - Přihlášení vytvoří dočasný přístupový token (tabulka `sessions`). Token
   se posílá v hlavičce `Authorization: Bearer <token>`.
-- Ukládá pokrok z lekcí do tabulky `progress` – pro každého uživatele,
-  jednotku (písmeno) a lekci zvlášť.
+- Ukládá pokrok z lekcí do tabulky `progress` – pro každého uživatele
+  a tábor (jeden tábor = jedna lekce) zvlášť.
 - Nabízí API pro registraci, přihlášení, odhlášení a práci s pokrokem.
 
 ## Databáze
@@ -42,8 +42,8 @@ přihlášení a ukládání pokroku.
 |----------------|---------|---------------------------------------------|
 | `id`           | INTEGER | primární klíč, autoincrement                |
 | `user_id`      | INTEGER | cizí klíč na `users.id`                     |
-| `unit`         | TEXT    | identifikátor jednotky (písmeno, např. `a`) |
-| `lesson`       | INTEGER | číslo lekce v jednotce (1–4)                |
+| `unit`         | TEXT    | identifikátor lekce/tábora (číslo 1–46)     |
+| `lesson`       | INTEGER | pořadí lekce v táboru (nově vždy `1`)       |
 | `completed`    | INTEGER | `1` = lekce dokončena, `0` = zatím ne       |
 | `best_accuracy`| REAL    | nejlepší přesnost v procentech              |
 | `best_wpm`     | REAL    | nejlepší rychlost (slova za minutu)         |
@@ -52,6 +52,17 @@ přihlášení a ukládání pokroku.
 
 Pro dvojici `user_id` + `unit` + `lesson` existuje jen jeden řádek; nový
 pokus se do něj sloučí (zůstává nejlepší přesnost a rychlost).
+
+### Převod staršího pokroku
+
+Starší verze ukládala pokrok podle písmen (`unit = "a"`) a v rámci každého
+písmene čtyři lekce. Skript `migrate_progress.py` převede písmenné jednotky
+na čísla táborů a sloučí lekce 1–4 do jedné. Před zásahem vytvoří záložní
+kopii databáze a je bezpečné ho spustit opakovaně:
+
+```bash
+python migrate_progress.py --db /opt/10fingerstyping/server/users.db
+```
 
 Databáze se vytvoří automaticky při prvním spuštění.
 
@@ -97,7 +108,7 @@ Hlavička `Authorization: Bearer <token>`. Vrací pokrok přihlášeného uživa
   "user": { "id": 1, "username": "jan", "..." : "..." },
   "progress": [
     {
-      "unit": "a",
+      "unit": "15",
       "lesson": 1,
       "completed": true,
       "best_accuracy": 98.4,
@@ -114,11 +125,12 @@ Hlavička `Authorization: Bearer <token>`. Vrací pokrok přihlášeného uživa
 Hlavička `Authorization: Bearer <token>`. Tělo požadavku:
 
 ```json
-{ "unit": "a", "lesson": 1, "accuracy": 97.5, "wpm": 22.4, "completed": true }
+{ "unit": "15", "lesson": 1, "accuracy": 97.5, "wpm": 22.4, "completed": true }
 ```
 
 Lekce se označí jako dokončená jen při přesnosti alespoň 90 %. Vrací aktuální
 řádek pokroku. Opakovaný pokus nikdy nesníží nejlepší přesnost ani rychlost.
+V nové osnově je `lesson` vždy `1`, protože každý tábor má právě jednu lekci.
 
 ### `GET /api/health`
 

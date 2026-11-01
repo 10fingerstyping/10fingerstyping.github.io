@@ -281,7 +281,7 @@ footer{
 .user-dropdown button:hover{background:var(--info)}
 
 /* ---------------------------------------------------------------------------
-   Lekce – přehled jednotek, psací plocha, klávesnice
+   Lekce – přehled lekcí, klávesnicový návod, opisování
    --------------------------------------------------------------------------- */
 
 .lesson-shell{max-width:1120px;margin:0 auto}
@@ -328,43 +328,36 @@ footer{
 .units-head{margin:6px 0 16px}
 .units-head h2{font-size:26px;letter-spacing:-.3px;margin-bottom:4px}
 .units-head p{font-size:14.5px;color:var(--muted)}
-.units-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.lessons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
 
-.unit-card{
+.lesson-card{
   display:flex;gap:16px;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--radius);padding:18px;transition:border-color .2s,box-shadow .2s,transform .2s;
+  border-radius:var(--radius);padding:18px;cursor:pointer;text-align:left;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
 }
-.unit-card:hover{border-color:var(--accent);box-shadow:0 10px 26px rgba(0,0,0,.08);transform:translateY(-1px)}
-.unit-card.is-done{border-color:var(--accent)}
-.unit-letter{
+.lesson-card:hover{border-color:var(--accent);box-shadow:0 10px 26px rgba(0,0,0,.08);transform:translateY(-1px)}
+.lesson-card.is-done{border-color:var(--accent)}
+.lesson-card.is-current{box-shadow:inset 0 0 0 2px var(--accent)}
+.lesson-letter{
   width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;
   border:2px solid var(--finger-color,var(--accent));border-radius:13px;
   background:var(--info);color:var(--ink);
   font-size:27px;font-weight:800;line-height:1;
   box-shadow:inset 0 -4px 0 var(--finger-color,var(--accent));
 }
-.unit-body{flex:1;min-width:0}
-.unit-kicker{font-size:11px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--muted)}
-.unit-body h3{font-size:18px;line-height:1.2;margin:3px 0 5px}
-.unit-sub{font-size:13px;line-height:1.45;color:var(--muted);min-height:37px}
-.lesson-dots{display:flex;gap:7px;margin:11px 0 9px}
-.lesson-dot{
-  width:31px;height:31px;display:grid;place-items:center;
-  font:inherit;font-size:12.5px;font-weight:700;line-height:1;
-  border:1px solid var(--line);border-radius:50%;
-  background:transparent;color:var(--muted);cursor:pointer;transition:.2s;
-}
-.lesson-dot:hover{border-color:var(--accent);color:var(--ink);background:var(--info)}
-.lesson-dot.is-done{background:var(--accent);border-color:var(--accent);color:var(--btn-ink)}
-.lesson-dot.is-next{border-color:var(--accent);color:var(--accent)}
-.unit-bar{height:4px;background:var(--info);border-radius:4px;overflow:hidden}
-.unit-bar span{display:block;height:100%;background:var(--finger-color,var(--accent));border-radius:4px;transition:width .35s}
-.unit-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--muted)}
-.unit-start{
+.lesson-letter.is-long{font-size:17px;letter-spacing:-.02em}
+.lesson-body{flex:1;min-width:0}
+.lesson-kicker{font-size:11px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--muted)}
+.lesson-body h3{font-size:18px;line-height:1.2;margin:3px 0 5px}
+.lesson-note{font-size:13px;line-height:1.45;color:var(--muted);min-height:37px}
+.lesson-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px;font-size:12.5px;color:var(--muted)}
+.lesson-state{font-size:10.5px;font-weight:700;letter-spacing:.45px;text-transform:uppercase}
+.lesson-card.is-done .lesson-state,.lesson-card.is-current .lesson-state{color:var(--accent)}
+.lesson-open{
   font:inherit;font-size:13px;font-weight:700;
   padding:2px 0;border:0;background:transparent;color:var(--accent);cursor:pointer;
 }
-.unit-start:hover{text-decoration:underline}
+.lesson-open:hover{text-decoration:underline}
 
 /* --- průběh lekce --------------------------------------------------------- */
 
@@ -376,7 +369,7 @@ footer{
   background:transparent;color:var(--ink);cursor:pointer;transition:.2s;
 }
 .ghost-btn:hover{border-color:var(--accent);color:var(--accent)}
-.runner-crumb{font-size:12px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted)}
+.runner-crumb{font-size:12px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);text-align:right}
 .runner-head{
   display:flex;align-items:center;gap:18px;
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -389,27 +382,48 @@ footer{
   font-size:33px;font-weight:800;line-height:1;
   box-shadow:inset 0 -5px 0 var(--finger-color,var(--accent));
 }
+.runner-letter.is-long{font-size:20px;letter-spacing:-.02em}
 .runner-head-copy{flex:1;min-width:0}
 .runner-head-copy .eyebrow{margin-bottom:2px}
 .runner-head-copy h1{font-size:28px;line-height:1.1;letter-spacing:-.3px;margin-bottom:4px}
 .runner-head-copy .lead{font-size:13.5px;color:var(--muted);margin:0}
-.runner-progress{display:flex;gap:6px}
-.runner-step{
-  width:29px;height:29px;display:grid;place-items:center;
-  border:1px solid var(--line);border-radius:50%;
-  font-size:12px;font-weight:700;color:var(--muted);
+.runner-badge{
+  display:inline-flex;align-items:center;white-space:nowrap;
+  padding:6px 12px;border:1px solid var(--line);border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:.45px;text-transform:uppercase;
+  color:var(--muted);background:var(--info);
 }
-.runner-step.is-done{background:var(--accent);border-color:var(--accent);color:var(--btn-ink)}
-.runner-step.is-current{border-color:var(--accent);color:var(--accent)}
+.runner-badge.is-done{border-color:var(--accent);color:var(--accent)}
 
-.intro-card{
-  display:grid;grid-template-columns:1.05fr 1fr;gap:30px;align-items:start;
+/* --- návod na klávesnici -------------------------------------------------- */
+
+.guide-panel{margin-bottom:18px}
+.guide-card{
+  display:grid;grid-template-columns:1fr 1.05fr;gap:28px;align-items:start;
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-  padding:28px;
+  padding:24px 26px;
 }
-.intro-copy .eyebrow{margin-bottom:6px}
-.intro-copy h2{font-size:25px;line-height:1.18;letter-spacing:-.3px;margin-bottom:8px}
-.intro-copy p{font-size:15px;line-height:1.6;color:var(--muted);margin-bottom:16px}
+.guide-copy .eyebrow{margin-bottom:5px}
+.guide-copy h2{font-size:24px;line-height:1.18;letter-spacing:-.3px;margin-bottom:8px}
+.guide-copy p{font-size:14.5px;line-height:1.6;color:var(--muted);margin-bottom:14px}
+.guide-keys{display:grid;gap:8px;margin:0 0 16px}
+.guide-key-row{
+  display:flex;align-items:center;gap:12px;padding:9px 11px;
+  background:var(--info);border:1px solid var(--line);border-left:3px solid var(--finger-color,var(--accent));
+  border-radius:8px;
+}
+.guide-keycap{
+  width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);
+  font-family:Consolas,"Courier New",monospace;font-size:16px;font-weight:700;line-height:1;
+  box-shadow:inset 0 -2px 0 var(--finger-color,var(--accent));
+}
+.guide-key-copy{flex:1;min-width:0;display:grid;gap:1px}
+.guide-key-copy strong{font-size:14px}
+.guide-key-copy span{font-size:12.5px;line-height:1.4;color:var(--muted)}
+.guide-finger{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.guide-visual{display:flex;flex-direction:column;gap:14px;align-items:flex-start;min-width:0;width:100%}
+
 .finger-callout{
   display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:11px 14px;margin-bottom:16px;
@@ -417,30 +431,29 @@ footer{
   border-left:4px solid var(--finger-color,var(--accent));
   border-radius:var(--radius);font-size:14px;
 }
-.finger-callout .muted{color:var(--muted);font-size:12.5px;margin-left:auto}
 .finger-dot{
   display:inline-block;width:11px;height:11px;flex:0 0 11px;
   border-radius:50%;background:var(--finger-color,var(--accent));
 }
-.intro-tips{margin:0 0 20px 17px;color:var(--muted);font-size:14px;line-height:1.55}
-.intro-tips li{margin-bottom:4px}
-.intro-visual{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.intro-tips{margin:0 0 0 17px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.intro-tips li{margin-bottom:3px}
 
 .keyboard{
   display:inline-flex;flex-direction:column;gap:6px;
   max-width:100%;overflow-x:auto;
   padding:14px 16px;
   background:var(--info);border:1px solid var(--line);border-radius:12px;
+  --kb-size:38px;
 }
 .kb-row{display:flex;gap:6px}
 .kb-row-1{margin-left:14px}
 .kb-row-2{margin-left:28px}
-.kb-row-space{justify-content:center;margin-top:4px}
+.kb-controls{justify-content:center;margin-top:6px}
 .kb-key{
-  position:relative;width:38px;height:38px;display:grid;place-items:center;
+  position:relative;width:calc(var(--kb-size) * var(--kb-w,1));height:var(--kb-size);display:grid;place-items:center;
   border:1px solid var(--line);border-radius:6px;
   background:var(--card);color:var(--ink);
-  font-size:12px;font-weight:650;line-height:1;
+  font-size:12px;font-weight:650;line-height:1;white-space:nowrap;
   box-shadow:inset 0 -2px 0 var(--finger-color,transparent);
   transition:transform .15s,background .15s,box-shadow .15s;
 }
@@ -453,8 +466,7 @@ footer{
   transform:translateY(-2px);
   box-shadow:0 5px 13px rgba(0,0,0,.18),inset 0 -2px 0 var(--finger-color,transparent);
 }
-.kb-space{width:176px;height:29px;font-size:11px;letter-spacing:.35px;color:var(--muted)}
-.kb-space.is-target{color:var(--btn-ink)}
+.kb-key.is-dead .kb-shift{opacity:.65}
 
 .finger-legend{width:100%}
 .finger-legend-title{font-size:11px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
@@ -475,24 +487,32 @@ footer{
 .typing-stats strong{display:inline-block;font-size:21px;line-height:1.2;letter-spacing:-.3px}
 .tiny{font-size:10.5px;color:var(--muted);margin-left:4px}
 .typing-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:17px 20px}
-.typing-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12.5px;color:var(--muted);margin-bottom:11px}
-.target-text{
-  min-height:88px;padding:15px 14px;border:1px dashed var(--line);border-radius:var(--radius);
+.typing-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12.5px;color:var(--muted);margin-bottom:13px}
+.copy-block{margin-bottom:14px}
+.copy-label{font-size:10.5px;font-weight:700;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.copy-label span{font-size:12px;font-weight:400;letter-spacing:0;text-transform:none}
+.target-text,.typed-text{
+  min-height:58px;padding:13px 14px;border-radius:var(--radius);
   font-family:Consolas,"Courier New",monospace;font-size:25px;line-height:1.7;
-  letter-spacing:.02em;word-spacing:.16em;overflow-wrap:break-word;outline:none;
+  letter-spacing:.02em;word-spacing:.16em;overflow-wrap:break-word;
 }
-.target-text:focus{border-color:var(--accent)}
+.target-text{background:var(--info);border:1px dashed var(--line)}
+.typed-text{background:var(--card);border:1px solid var(--line);outline:none;cursor:text}
+.typed-text:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,111,92,.12)}
 .tch{padding:1px 0;border-radius:3px}
-.tch.is-ok{color:var(--accent)}
-.tch.is-bad{background:#c94b4b;color:#fff;border-radius:3px}
-.tch.is-current{background:var(--accent);color:var(--btn-ink);border-radius:3px;box-shadow:0 0 0 2px var(--accent)}
-.typing-focus-note{margin-top:11px;font-size:12px;color:var(--muted)}
-.keyboard-block{
-  display:grid;justify-items:center;gap:10px;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;
+.target-text .tch.is-current{background:var(--accent);color:var(--btn-ink);border-radius:3px;box-shadow:0 0 0 2px var(--accent)}
+.typed-text .tch.is-ok{color:var(--accent)}
+.typed-text .tch.is-bad{background:#c94b4b;color:#fff;border-radius:3px}
+.typed-text .tch.is-pending{color:var(--muted);opacity:.28}
+.typed-text .tch.is-cursor{background:var(--info);border-radius:3px;box-shadow:inset 0 -3px 0 var(--accent)}
+.typed-caret{
+  display:inline-block;width:2px;height:1em;background:var(--accent);
+  vertical-align:-.12em;animation:typed-blink 1s steps(1) infinite;
 }
+@keyframes typed-blink{50%{opacity:0}}
+.typing-focus-note{margin-top:11px;font-size:12px;color:var(--muted)}
 .keyboard-head{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;font-size:12px;color:var(--muted)}
-.finger-hint{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.finger-hint{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink);text-align:right}
 
 /* --- výsledek ------------------------------------------------------------ */
 
@@ -518,32 +538,32 @@ footer{
 
 @media(max-width:900px){
   .lesson-dashboard{grid-template-columns:repeat(2,1fr)}
-  .intro-card{grid-template-columns:1fr}
+  .guide-card{grid-template-columns:1fr}
   .runner-head{flex-wrap:wrap}
-  .runner-progress{margin-left:auto}
+  .runner-badge{margin-left:auto}
 }
 @media(max-width:720px){
   .lessons-page{padding-top:30px}
   .lessons-hero h1{font-size:32px}
   .lessons-hero .lead{font-size:15px}
   .lesson-dashboard{grid-template-columns:1fr 1fr}
-  .units-grid{grid-template-columns:1fr}
-  .kb-key{width:31px;height:34px;font-size:11px}
-  .kb-space{width:132px}
+  .lessons-grid{grid-template-columns:1fr}
+  .keyboard{--kb-size:31px}
   .kb-row{gap:4px}
   .kb-row-1{margin-left:9px}
   .kb-row-2{margin-left:18px}
-  .target-text{font-size:21px}
+  .target-text,.typed-text{font-size:21px}
   .typing-stats,.result-stats{grid-template-columns:1fr 1fr}
-  .intro-card,.runner-head{padding:18px}
+  .guide-card,.runner-head{padding:18px}
   .runner-letter{width:56px;height:56px;flex-basis:56px;font-size:26px}
   .result-card{padding:26px 18px}
 }
 @media(max-width:460px){
   .lesson-dashboard{grid-template-columns:1fr}
   .dash-card strong{font-size:20px}
-  .kb-key{width:27px;height:31px;font-size:10px}
-  .kb-space{width:112px}
+  .keyboard{--kb-size:27px}
+  .kb-row{gap:3px}
+  .kb-key{font-size:10px}
   .result-actions{flex-direction:column}
   .result-actions .btn,.result-actions .ghost-btn{width:100%}
 }

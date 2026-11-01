@@ -17,8 +17,10 @@ CORS(app)
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 MIN_PASSWORD_LEN = 8
-MAX_UNIT_LEN = 4
-MAX_LESSON_INDEX = 20
+# Nová osnova má jeden tábor = jednu lekci. `unit` nese identifikátor lekce
+# (číslo tábora) a `lesson` je z důvodu kompatibility vždy 1.
+MAX_UNIT_LEN = 8
+MAX_LESSON_INDEX = 200
 MIN_COMPLETED_ACCURACY = 90.0
 
 
