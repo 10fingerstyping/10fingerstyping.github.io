@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -94,8 +94,8 @@
     <div id="syncNotice" class="sync-notice" style="display:none;"></div>
 
     <div class="units-head">
-      <h2>Lekce podle táborů</h2>
-      <p>Pořadí doporučujeme dodržet – každá lekce navazuje na písmena z předchozích táborů.</p>
+      <h2>Lekce</h2>
+      <p>Každý tábor je jedna lekce. Pořadí doporučujeme dodržet – lekce na sebe navazují.</p>
     </div>
     <div id="lessonsGrid" class="lessons-grid"></div>
   </section>
@@ -109,7 +109,7 @@
     <div class="runner-head">
       <div class="runner-letter" id="runnerLetter">J</div>
       <div class="runner-head-copy">
-        <span class="eyebrow" id="runnerKicker">Tábor 1</span>
+        <span class="eyebrow" id="runnerKicker">Lekce 1</span>
         <h1 id="runnerTitle">Písmeno J</h1>
         <p id="runnerSubtitle" class="lead"></p>
       </div>
@@ -127,6 +127,9 @@
             <span class="finger-dot"></span><strong id="guideFinger"></strong>
           </div>
           <ul class="intro-tips" id="guideTips"></ul>
+          <div class="guide-actions">
+            <button id="guideContinueBtn" class="btn" type="button">Pokračovat ke cvičení →</button>
+          </div>
         </div>
         <div class="guide-visual">
           <div class="keyboard-head">
@@ -140,16 +143,10 @@
     </div>
 
     <div id="typingPanel" class="typing-panel" style="display:none">
-      <div class="typing-stats">
-        <div><span>Přesnost</span><strong id="statAccuracy">100 %</strong></div>
-        <div><span>Rychlost</span><strong id="statWpm">0</strong><span class="tiny">slov/min</span></div>
-        <div><span>Řádek</span><strong id="statLine">1 / 10</strong></div>
-        <div><span>Chyby</span><strong id="statErrors">0</strong></div>
-      </div>
       <div class="typing-card">
         <div class="typing-meta">
-          <span id="typingHint">Opisuj text z předlohy.</span>
-          <button id="restartBtn" class="ghost-btn" type="button">Začít znovu</button>
+          <span id="typingHint">Opiš předlohu do pole níže.</span>
+          <span id="exerciseCount" class="exercise-count"></span>
         </div>
         <div class="copy-block">
           <div class="copy-label">Předloha <span>– tohle opiš</span></div>
@@ -157,9 +154,13 @@
         </div>
         <div class="typed-block">
           <div class="copy-label">Tvůj přepis <span>– piš sem</span></div>
-          <div id="typedText" class="typed-text" tabindex="0" aria-label="Tvůj přepis"></div>
+          <textarea id="typedText" class="typed-text" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" placeholder="Piš sem opsaný text…" aria-label="Tvůj přepis"></textarea>
         </div>
-        <div class="typing-focus-note">Klikni kamkoliv do stránky a piš. Chybu opravíš klávesou Backspace.</div>
+        <div class="exercise-actions">
+          <button id="checkBtn" class="btn" type="button">Zkontrolovat</button>
+          <button id="restartBtn" class="ghost-btn" type="button">Začít lekci znovu</button>
+        </div>
+        <div id="checkFeedback" class="check-feedback" style="display:none"></div>
       </div>
     </div>
 
@@ -197,7 +198,8 @@
     user: readUser(),
     progress: {},
     lesson: null,
-    typing: null,
+    session: null,
+    step: 'overview',
     syncMessage: '',
     authIssue: false
   };
@@ -231,14 +233,14 @@
     guideKeyboard: document.getElementById('guideKeyboard'),
     guideLegend: document.getElementById('guideLegend'),
     fingerHint: document.getElementById('fingerHint'),
+    guideContinueBtn: document.getElementById('guideContinueBtn'),
     typingPanel: document.getElementById('typingPanel'),
     resultPanel: document.getElementById('resultPanel'),
     targetText: document.getElementById('targetText'),
     typedText: document.getElementById('typedText'),
-    statAccuracy: document.getElementById('statAccuracy'),
-    statWpm: document.getElementById('statWpm'),
-    statLine: document.getElementById('statLine'),
-    statErrors: document.getElementById('statErrors'),
+    exerciseCount: document.getElementById('exerciseCount'),
+    checkBtn: document.getElementById('checkBtn'),
+    checkFeedback: document.getElementById('checkFeedback'),
     typingHint: document.getElementById('typingHint')
   };
 
@@ -569,7 +571,7 @@
     if(current){
       el.dashCurrent.textContent = lessonGlyph(current);
       var finger = primaryFinger(current);
-      el.dashCurrentFinger.textContent = 'Tábor ' + current.number + (finger ? ' · ' + finger.name : '');
+      el.dashCurrentFinger.textContent = 'Lekce ' + current.number + (finger ? ' · ' + finger.name : '');
     } else {
       el.dashCurrent.textContent = 'Hotovo';
       el.dashCurrentFinger.textContent = 'Všech ' + total + ' lekcí dokončeno';
@@ -589,7 +591,7 @@
         '" style="--finger-color:' + color + '" data-lesson-id="' + lesson.id + '">';
       html += '<div class="lesson-letter' + (glyph.length > 2 ? ' is-long' : '') + '">' + escapeHtml(glyph) + '</div>';
       html += '<div class="lesson-body">';
-      html += '<div class="lesson-kicker">Tábor ' + lesson.number + (finger ? ' · ' + finger.name : '') + '</div>';
+      html += '<div class="lesson-kicker">Lekce ' + lesson.number + (finger ? ' · ' + finger.name : '') + '</div>';
       html += '<h3>' + escapeHtml(lessonHeading(lesson)) + '</h3>';
       html += '<p class="lesson-note">' + escapeHtml(lesson.title) + '</p>';
       html += '<div class="lesson-foot"><span class="lesson-state">' + stateLabel + '</span>';
@@ -693,6 +695,7 @@
     var color = finger ? finger.color : 'var(--accent)';
 
     el.guidePanel.style.display = 'block';
+    if(el.fingerHint) renderFingerHint((lesson.newChars || [])[0] || '');
     el.guideTitle.textContent = lessonHeading(lesson);
     el.guideDesc.textContent = lessonSubtext(lesson);
 
@@ -734,48 +737,97 @@
     el.runnerLetter.textContent = glyph;
     el.runnerLetter.classList.toggle('is-long', glyph.length > 2);
     el.runnerLetter.style.setProperty('--finger-color', finger ? finger.color : 'var(--accent)');
-    el.runnerKicker.textContent = 'Tábor ' + lesson.number + (finger ? ' · ' + finger.name : '');
+    el.runnerKicker.textContent = 'Lekce ' + lesson.number + (finger ? ' · ' + finger.name : '');
     el.runnerTitle.textContent = lessonHeading(lesson);
     el.runnerSubtitle.textContent = 'Lekce ' + lesson.number + ' / ' + D.totalLessons + ' · ' + info.subtitle;
-    el.runnerCrumb.textContent = 'Tábor ' + lesson.number + ' z ' + D.totalLessons + ' · ' + lesson.title;
+    el.runnerCrumb.textContent = 'Lekce ' + lesson.number + ' z ' + D.totalLessons + ' · ' + lesson.title;
 
     var done = isDone(lesson.id);
     el.runnerProgress.innerHTML = '<span class="runner-badge' + (done ? ' is-done' : '') + '">' +
       (done ? '✓ Hotovo' : 'Lekce ' + lesson.number) + '</span>';
   }
 
-  function startTyping(){
+  function startLesson(){
+    var lesson = state.lesson;
+    if(!lesson) return;
+
+    state.session = null;
+    state.step = 'intro';
+
+    el.resultPanel.style.display = 'none';
+    el.typingPanel.style.display = 'none';
+    el.guidePanel.style.display = 'block';
+    renderGuide();
+    renderRunnerHead();
+  }
+
+  function startExercises(){
     var lesson = state.lesson;
     if(!lesson) return;
     var content = lesson.lessons[0];
-    state.typing = {
-      lines: content.lines,
-      lineIndex: 0,
-      charIndex: 0,
-      states: [],
-      keystrokes: 0,
-      correct: 0,
-      errors: 0,
-      netChars: 0,
-      startedAt: null,
-      finished: false,
-      advancing: false
+
+    state.step = 'exercise';
+    state.session = {
+      lines: content.lines.slice(),
+      index: 0,
+      startedAt: 0,
+      results: [],
+      lastTyped: ''
     };
 
-    el.guidePanel.style.display = 'block';
-    el.typingPanel.style.display = 'block';
+    el.guidePanel.style.display = 'none';
     el.resultPanel.style.display = 'none';
-    el.typedText.focus({ preventScroll: true });
-    resetLineStates();
-    renderTarget();
-    updateStats();
+    el.typingPanel.style.display = 'block';
+    renderExercise();
   }
 
-  function resetLineStates(){
-    state.typing.states = [];
-    for(var i = 0; i < state.typing.lines[state.typing.lineIndex].length; i++){
-      state.typing.states.push('');
+  function exerciseTarget(){
+    var session = state.session;
+    if(!session) return '';
+    return String(session.lines[session.index] || '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\n+$/, '');
+  }
+
+  function renderExercise(){
+    var session = state.session;
+    if(!session) return;
+
+    state.step = 'exercise';
+    session.startedAt = 0;
+    session.lastTyped = '';
+
+    el.exerciseCount.textContent = 'Cvičení ' + (session.index + 1) + ' / ' + session.lines.length;
+    el.typingHint.textContent = 'Opiš předlohu do pole níže, pak klikni na Zkontrolovat.';
+    el.typedText.value = '';
+    el.typedText.disabled = false;
+    el.checkBtn.style.display = '';
+    el.checkFeedback.style.display = 'none';
+    el.checkFeedback.innerHTML = '';
+    renderExerciseTarget(false);
+
+    el.typedText.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderExerciseTarget(checked){
+    var session = state.session;
+    var line = exerciseTarget();
+    var typed = checked ? session.lastTyped : '';
+    var html = '';
+
+    for(var i = 0; i < line.length; i++){
+      var ch = line.charAt(i);
+      var cls = 'tch' + charClass(ch);
+      if(checked) cls += typed.charAt(i) === ch ? ' is-ok' : ' is-bad';
+      html += '<span class="' + cls + '">' + charGlyph(ch) + '</span>';
     }
+
+    if(checked && typed.length > line.length){
+      html += '<span class="target-extra">+' + (typed.length - line.length) + ' znaků navíc</span>';
+    }
+
+    el.targetText.innerHTML = html;
   }
 
   function charGlyph(ch){
@@ -791,125 +843,130 @@
     return '';
   }
 
-  function renderTarget(){
-    var typing = state.typing;
-    if(!typing) return;
-    var line = typing.lines[typing.lineIndex];
-    var copyHtml = '';
-    var typedHtml = '';
+  function checkExercise(){
+    var session = state.session;
+    if(!session || state.step !== 'exercise') return;
 
-    for(var i = 0; i < line.length; i++){
-      var ch = line.charAt(i);
-      var extra = charClass(ch);
-
-      copyHtml += '<span class="tch' + extra + (i === typing.charIndex ? ' is-current' : '') + '">' + charGlyph(ch) + '</span>';
-
-      if(i < typing.charIndex){
-        var typedState = typing.states[i];
-        typedHtml += '<span class="tch' + extra + (typedState === 'ok' ? ' is-ok' : ' is-bad') + '">' + charGlyph(ch) + '</span>';
-      }
+    var typed = el.typedText.value.replace(/\r\n?/g, '\n').replace(/\n+$/, '');
+    if(!typed.trim()){
+      toast('Nejdřív napiš opis předlohy.');
+      el.typedText.focus();
+      return;
     }
-    if(!typedHtml){
-      typedHtml = '<span class="typed-placeholder">Začni psát…</span>';
-    }
-    typedHtml += '<span class="typed-caret"></span>';
 
-    el.targetText.innerHTML = copyHtml;
-    el.typedText.innerHTML = typedHtml;
-    el.statLine.textContent = (typing.lineIndex + 1) + ' / ' + typing.lines.length;
+    var target = exerciseTarget();
+    var length = Math.max(target.length, typed.length);
+    var correct = 0;
+    var errors = 0;
 
-    var expected = line.charAt(typing.charIndex) || '';
-    renderKeyboard(el.guideKeyboard, expected ? [expected] : [], []);
-    renderFingerHint(expected);
-    if(el.typingHint){
-      if(expected === '\n'){
-        el.typingHint.textContent = 'Konec řádku: stiskni Enter.';
-      } else if(expected === '´'){
-        el.typingHint.textContent = 'Stiskni klávesu ´ a potom napiš písmeno.';
+    for(var i = 0; i < length; i++){
+      if(i < target.length && i < typed.length && target.charAt(i) === typed.charAt(i)){
+        correct++;
       } else {
-        el.typingHint.textContent = 'Řádek ' + (typing.lineIndex + 1) + ': opiš předlohu do pole Tvůj přepis.';
+        errors++;
       }
     }
+
+    var accuracy = length ? (correct / length * 100) : 100;
+    var elapsed = session.startedAt ? Math.max(1, Math.round((Date.now() - session.startedAt) / 1000)) : 1;
+    var wpm = (correct / 5) / (elapsed / 60);
+
+    session.lastTyped = typed;
+    session.results.push({
+      correct: correct,
+      length: length,
+      errors: errors,
+      elapsed: elapsed
+    });
+    state.step = 'checked';
+
+    renderExerciseTarget(true);
+    renderExerciseCheck(accuracy, errors, elapsed, wpm, typed.length > target.length);
   }
 
-  function updateStats(){
-    var typing = state.typing;
-    if(!typing) return;
-    var accuracy = typing.keystrokes ? (typing.correct / typing.keystrokes * 100) : 100;
-    var elapsed = typing.startedAt ? (Date.now() - typing.startedAt) / 1000 : 0;
-    var wpm = elapsed > 0 ? (typing.netChars / 5) / (elapsed / 60) : 0;
+  function renderExerciseCheck(accuracy, errors, elapsed, wpm, hasExtra){
+    var session = state.session;
+    var isLast = session.index >= session.lines.length - 1;
+    var perfect = errors === 0;
+    var note;
 
-    el.statAccuracy.textContent = accuracy.toFixed(1).replace('.0', '') + ' %';
-    el.statWpm.textContent = wpm ? wpm.toFixed(1).replace('.0', '') : '0';
-    el.statErrors.textContent = typing.errors;
-  }
-
-  function processChar(ch){
-    var typing = state.typing;
-    if(!typing || typing.finished || typing.advancing) return;
-    if(!typing.startedAt) typing.startedAt = Date.now();
-
-    var line = typing.lines[typing.lineIndex];
-    var expected = line.charAt(typing.charIndex);
-    var ok = ch === expected;
-
-    typing.keystrokes++;
-    if(ok){
-      typing.correct++;
-      typing.netChars++;
-      typing.states[typing.charIndex] = 'ok';
+    if(perfect){
+      note = 'Přesně opsáno, bez chyby.';
+    } else if(hasExtra){
+      note = 'V přepisu je víc znaků, než má předloha. Červeně jsou označená místa, která nesouhlasí.';
     } else {
-      typing.errors++;
-      typing.states[typing.charIndex] = 'bad';
+      note = 'Červeně jsou označená místa, která nesouhlasí s předlohou. Pokračuj tlačítkem níže.';
     }
 
-    typing.charIndex++;
-    renderTarget();
-    updateStats();
+    el.typedText.disabled = true;
+    el.checkBtn.style.display = 'none';
+    el.checkFeedback.style.display = 'block';
+    el.checkFeedback.innerHTML =
+      '<div class="check-head">' +
+        '<strong>' + (perfect ? '✓ Bez chyby' : 'Zkontrolováno') + '</strong>' +
+        '<span>Přesnost ' + formatNumber(accuracy) + ' %</span>' +
+      '</div>' +
+      '<div class="check-stats">' +
+        '<div><span>Přesnost</span><strong>' + formatNumber(accuracy) + ' %</strong></div>' +
+        '<div><span>Chyby</span><strong>' + errors + '</strong></div>' +
+        '<div><span>Rychlost</span><strong>' + formatNumber(wpm) + '<small>slov/min</small></strong></div>' +
+        '<div><span>Čas</span><strong>' + elapsed + '<small>s</small></strong></div>' +
+      '</div>' +
+      '<p class="check-note">' + note + '</p>' +
+      '<div class="check-actions">' +
+        '<button type="button" class="btn" id="continueBtn">' + (isLast ? 'Dokončit lekci →' : 'Pokračovat →') + '</button>' +
+      '</div>';
 
-    if(typing.charIndex >= line.length){
-      typing.advancing = true;
-      setTimeout(function(){
-        if(!state.typing || state.typing !== typing) return;
-        typing.advancing = false;
-        if(typing.lineIndex >= typing.lines.length - 1){
-          finishLesson();
-        } else {
-          typing.lineIndex++;
-          typing.charIndex = 0;
-          resetLineStates();
-          renderTarget();
-        }
-      }, 180);
-    }
+    var continueBtn = document.getElementById('continueBtn');
+    if(continueBtn) continueBtn.addEventListener('click', continueExercise);
+
+    el.checkFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  function backspace(){
-    var typing = state.typing;
-    if(!typing || typing.finished || typing.advancing) return;
-    if(typing.charIndex <= 0) return;
-    typing.charIndex--;
-    if(typing.states[typing.charIndex] === 'ok') typing.netChars = Math.max(0, typing.netChars - 1);
-    typing.states[typing.charIndex] = '';
-    renderTarget();
-    updateStats();
+  function continueExercise(){
+    var session = state.session;
+    if(!session || state.step !== 'checked') return;
+
+    if(session.index >= session.lines.length - 1){
+      finishLesson();
+      return;
+    }
+
+    session.index++;
+    renderExercise();
+  }
+
+  function formatNumber(value){
+    return (Math.round(value * 10) / 10).toFixed(1).replace('.0', '');
   }
 
   function finishLesson(){
-    var typing = state.typing;
-    if(!typing || typing.finished) return;
-    typing.finished = true;
+    var session = state.session;
+    var lesson = state.lesson;
+    if(!session || !lesson) return;
 
-    var elapsedMs = typing.startedAt ? (Date.now() - typing.startedAt) : 0;
-    var elapsedSec = Math.max(1, elapsedMs / 1000);
-    var accuracy = typing.keystrokes ? (typing.correct / typing.keystrokes * 100) : 100;
-    var wpm = (typing.netChars / 5) / (elapsedSec / 60);
+    var correct = 0;
+    var length = 0;
+    var errors = 0;
+    var elapsedSec = 0;
+
+    session.results.forEach(function(result){
+      correct += result.correct;
+      length += result.length;
+      errors += result.errors;
+      elapsedSec += result.elapsed;
+    });
+
+    var accuracy = length ? (correct / length * 100) : 100;
+    elapsedSec = Math.max(1, elapsedSec);
+    var wpm = (correct / 5) / (elapsedSec / 60);
     var completed = accuracy >= 90;
 
     accuracy = Math.round(accuracy * 10) / 10;
     wpm = Math.round(wpm * 10) / 10;
 
-    var lesson = state.lesson;
+    state.step = 'result';
+
     var entry = {
       unit: lesson.id,
       lesson: 1,
@@ -960,7 +1017,7 @@
       renderRunnerHead();
     }
 
-    renderResult(accuracy, wpm, completed, elapsedSec, typing.errors);
+    renderResult(accuracy, wpm, completed, elapsedSec, errors);
   }
 
   function renderResult(accuracy, wpm, completed, elapsedSec, errors){
@@ -999,7 +1056,7 @@
         '</div>' +
       '</div>';
 
-    document.getElementById('resultRetry').addEventListener('click', startTyping);
+    document.getElementById('resultRetry').addEventListener('click', startLesson);
     document.getElementById('resultBack').addEventListener('click', showOverview);
     document.getElementById('resultNext').addEventListener('click', function(){
       if(next) openLesson(next.id);
@@ -1013,24 +1070,24 @@
     if(!lesson) return;
 
     state.lesson = lesson;
-    state.typing = null;
+    state.session = null;
 
     el.overview.style.display = 'none';
     el.runner.style.display = 'block';
     el.resultPanel.style.display = 'none';
     el.typingPanel.style.display = 'none';
-    renderRunnerHead();
-    renderGuide();
-    startTyping();
 
     try {
       history.replaceState(null, '', 'lekce.html?lekce=' + encodeURIComponent(lesson.id));
     } catch(e){}
     window.scrollTo(0, 0);
+
+    startLesson();
   }
 
   function showOverview(){
-    state.typing = null;
+    state.session = null;
+    state.step = 'overview';
     el.runner.style.display = 'none';
     el.overview.style.display = 'block';
     renderOverview();
@@ -1109,52 +1166,6 @@
     });
   }
 
-  function setupKeyboardHandler(){
-    document.addEventListener('keydown', function(e){
-      var typing = state.typing;
-      if(!typing || typing.finished) return;
-      if(e.ctrlKey || e.metaKey || e.altKey) return;
-      var tag = e.target && e.target.tagName;
-      if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-
-      var line = typing.lines[typing.lineIndex];
-      var expected = line.charAt(typing.charIndex);
-
-      if(e.key === 'Backspace'){
-        e.preventDefault();
-        backspace();
-        return;
-      }
-      if(e.key === 'Enter'){
-        e.preventDefault();
-        if(expected === '\n') processChar('\n');
-        return;
-      }
-      if(e.key === 'Tab' || e.key === 'Escape' || e.key === 'Shift' || e.key === 'Control' ||
-         e.key === 'Alt' || e.key === 'Meta' || e.key === 'CapsLock'){
-        return;
-      }
-
-      if(expected === '´'){
-        if(e.key === 'Dead' || e.key === '´' || e.key === 'ˇ' || e.key === '`'){
-          e.preventDefault();
-          processChar('´');
-          return;
-        }
-      }
-
-      if(e.key === ' '){
-        e.preventDefault();
-        processChar(' ');
-        return;
-      }
-      if(e.key.length === 1 && !e.repeat){
-        e.preventDefault();
-        processChar(e.key);
-      }
-    });
-  }
-
   function setupHeader(){
     var loginBtn = document.getElementById('loginBtn');
     var userMenu = document.getElementById('userMenu');
@@ -1216,9 +1227,7 @@
       renderOverview();
       if(state.lesson){
         renderRunnerHead();
-        if(state.typing && state.typing.finished) return;
-        renderGuide();
-        if(state.typing) renderTarget();
+        if(state.step === 'intro') renderGuide();
       }
     });
   }
@@ -1235,13 +1244,21 @@
     renderLayoutPicker();
     setupLessonsGrid();
     setupLayoutSwitch();
-    setupKeyboardHandler();
     setupHeader();
 
     var backBtn = document.getElementById('backBtn');
-    var restartBtn = document.getElementById('restartBtn');
     if(backBtn) backBtn.addEventListener('click', showOverview);
-    if(restartBtn) restartBtn.addEventListener('click', startTyping);
+    if(el.guideContinueBtn) el.guideContinueBtn.addEventListener('click', startExercises);
+    if(el.checkBtn) el.checkBtn.addEventListener('click', checkExercise);
+    if(el.typedText){
+      el.typedText.addEventListener('input', function(){
+        var session = state.session;
+        if(!session || state.step !== 'exercise' || session.startedAt) return;
+        session.startedAt = Date.now();
+      });
+    }
+    var restartBtn = document.getElementById('restartBtn');
+    if(restartBtn) restartBtn.addEventListener('click', startLesson);
 
     var themeBtn = document.getElementById('themeBtn');
     if(themeBtn){
