@@ -10,7 +10,18 @@
   --band:#f5f3ef;
   --btn-ink:#ffffff;
   --radius:6px;
+  --typing-base:25px;
+  --typing-scale:1;
 }
+
+html[data-accent="blue"]{--accent:#2b5d9e;--accent-dark:#224a80}
+html[data-accent="orange"]{--accent:#b25a12;--accent-dark:#8f480d}
+html[data-accent="purple"]{--accent:#6b4b9a;--accent-dark:#563b7d}
+
+html[data-text-size="s"]{--typing-scale:.8}
+html[data-text-size="m"]{--typing-scale:1}
+html[data-text-size="l"]{--typing-scale:1.2}
+html[data-text-size="xl"]{--typing-scale:1.44}
 
 html[data-theme="dark"]{
   --bg:#141414;
@@ -24,6 +35,10 @@ html[data-theme="dark"]{
   --band:#191817;
   --btn-ink:#10201c;
 }
+
+html[data-theme="dark"][data-accent="blue"]{--accent:#6fa8e8;--accent-dark:#5590d4}
+html[data-theme="dark"][data-accent="orange"]{--accent:#e59a52;--accent-dark:#cf8439}
+html[data-theme="dark"][data-accent="purple"]{--accent:#a98ad6;--accent-dark:#9375c2}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -308,6 +323,56 @@ footer{
 .layout-btn.is-active{background:var(--accent);color:var(--btn-ink)}
 .layout-picker-note{display:block;font-size:12.5px;color:var(--muted);margin-top:7px;max-width:250px}
 
+/* --- nastavení ----------------------------------------------------------- */
+
+.hero-settings-btn{
+  align-self:flex-end;display:inline-flex;align-items:center;gap:8px;
+  font:inherit;font-size:14px;font-weight:600;padding:10px 18px;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--card);color:var(--ink);cursor:pointer;transition:.2s;
+}
+.hero-settings-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.settings-panel{position:fixed;inset:0;z-index:300;display:flex;justify-content:flex-end}
+.settings-panel[hidden]{display:none}
+.settings-backdrop{position:absolute;inset:0;background:rgba(12,12,12,.45)}
+.settings-card{
+  position:relative;width:min(400px,100%);height:100%;overflow-y:auto;
+  background:var(--card);border-left:1px solid var(--line);
+  padding:26px 24px 32px;box-shadow:-18px 0 50px rgba(0,0,0,.22);
+  animation:settings-in .22s ease;
+}
+@keyframes settings-in{from{transform:translateX(26px);opacity:.35}to{transform:none;opacity:1}}
+.settings-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:26px}
+.settings-head h2{font-size:26px;line-height:1.1;letter-spacing:-.4px}
+.settings-close{
+  width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:var(--radius);background:transparent;
+  color:var(--ink);font-size:15px;cursor:pointer;transition:.2s;
+}
+.settings-close:hover{border-color:var(--accent);color:var(--accent)}
+.settings-group{margin-bottom:24px}
+.settings-label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.settings-note{display:block;font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.settings-hint{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin:0}
+.settings-group .segmented{display:flex;width:100%}
+.settings-group .segmented>button{
+  flex:1;font:inherit;font-size:13px;font-weight:600;
+  padding:9px 6px;border:0;border-right:1px solid var(--line);
+  background:transparent;color:var(--muted);cursor:pointer;transition:.2s;
+}
+.settings-group .segmented>button:last-child{border-right:0}
+.settings-group .segmented>button:hover{color:var(--ink);background:var(--info)}
+.settings-group .segmented>button.is-active{background:var(--accent);color:var(--btn-ink)}
+.accent-options{display:flex;gap:11px;flex-wrap:wrap}
+.accent-btn{
+  width:42px;height:42px;padding:0;border:2px solid var(--line);border-radius:50%;
+  background:var(--card);display:grid;place-items:center;cursor:pointer;transition:.2s;
+}
+.accent-btn span{width:26px;height:26px;border-radius:50%;background:var(--sw);display:block}
+.accent-btn:hover{border-color:var(--ink)}
+.accent-btn.is-active{border-color:var(--ink);box-shadow:0 0 0 3px var(--info)}
+
 .lesson-dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
 .dash-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
 .dash-label{display:block;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
@@ -488,8 +553,10 @@ footer{
 .copy-label span{font-size:12px;font-weight:400;letter-spacing:0;text-transform:none}
 .target-text,.typed-text{
   min-height:58px;padding:13px 14px;border-radius:var(--radius);
-  font-family:Consolas,"Courier New",monospace;font-size:25px;line-height:1.7;
+  font-family:Consolas,"Courier New",monospace;
+  font-size:calc(var(--typing-base) * var(--typing-scale));line-height:1.7;
   letter-spacing:.02em;word-spacing:.16em;overflow-wrap:break-word;
+  color:var(--ink);caret-color:var(--accent);
 }
 .target-text{background:var(--info);border:1px dashed var(--line)}
 .typed-text{
@@ -497,6 +564,7 @@ footer{
   background:var(--card);border:1px solid var(--line);outline:none;cursor:text;
   white-space:pre-wrap;overflow-wrap:break-word;
 }
+.typed-text::placeholder{color:var(--muted);opacity:.7}
 .typed-text:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,111,92,.12)}
 .typed-text:disabled{opacity:.72;cursor:default}
 .tch{padding:1px 0;border-radius:3px}
@@ -564,12 +632,20 @@ footer{
   .kb-row{gap:4px}
   .kb-row-1{margin-left:9px}
   .kb-row-2{margin-left:18px}
-  .target-text,.typed-text{font-size:21px}
+  .target-text,.typed-text{--typing-base:21px}
   .check-stats,.result-stats{grid-template-columns:1fr 1fr}
   .guide-card,.runner-head{padding:18px}
   .runner-letter{width:56px;height:56px;flex-basis:56px;font-size:26px}
   .result-card{padding:26px 18px}
 }
+@media(max-width:640px){
+  header{flex-wrap:wrap;row-gap:10px}
+  .header-right{width:100%;justify-content:flex-end;flex-wrap:wrap;gap:6px}
+  nav{display:none}
+  .lang{display:none}
+  .wrap{padding:0 20px}
+}
+
 @media(max-width:460px){
   .lesson-dashboard{grid-template-columns:1fr}
   .dash-card strong{font-size:20px}

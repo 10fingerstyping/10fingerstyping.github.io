@@ -5,12 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
     if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
     document.documentElement.setAttribute('data-theme', t);
+    var a = localStorage.getItem('accent') || 'green';
+    document.documentElement.setAttribute('data-accent', a);
+    var z = localStorage.getItem('textSize') || 'm';
+    document.documentElement.setAttribute('data-text-size', z);
   })();
 </script>
 </head>
@@ -34,6 +38,7 @@
           <li><button type="button" class="lang-btn" data-lang="en" role="menuitem">English (EN)</button></li>
         </ul>
       </div>
+      <button class="toggle" id="settingsBtn" type="button" aria-label="Nastavení" aria-expanded="false" aria-controls="settingsPanel">⚙</button>
       <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
       <a class="login" id="loginBtn" href="prihlaseni.html">Přihlásit se</a>
       <div id="userMenu" class="user-menu" style="display:none;">
@@ -51,6 +56,59 @@
   </header>
 </div>
 
+<div id="settingsPanel" class="settings-panel" hidden>
+  <div class="settings-backdrop" data-settings-close></div>
+  <div class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-head">
+      <div>
+        <span class="eyebrow">Vzhled a psaní</span>
+        <h2 id="settingsTitle">Nastavení</h2>
+      </div>
+      <button type="button" class="settings-close" id="settingsClose" aria-label="Zavřít nastavení">✕</button>
+    </div>
+
+    <div class="settings-group">
+      <span class="settings-label">Motiv</span>
+      <div class="segmented" id="themeSwitch" role="group" aria-label="Motiv">
+        <button type="button" class="seg-btn" data-theme-value="light">Světlý</button>
+        <button type="button" class="seg-btn" data-theme-value="dark">Tmavý</button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <span class="settings-label">Rozložení klávesnice</span>
+      <div class="segmented" id="layoutSwitch" role="group" aria-label="Rozložení klávesnice">
+        <button type="button" class="layout-btn" data-layout="qwertz">QWERTZ</button>
+        <button type="button" class="layout-btn" data-layout="qwerty">QWERTY</button>
+      </div>
+      <span class="settings-note" id="layoutNote"></span>
+    </div>
+
+    <div class="settings-group">
+      <span class="settings-label">Velikost textu</span>
+      <div class="segmented" id="textSizeSwitch" role="group" aria-label="Velikost textu">
+        <button type="button" class="seg-btn" data-size="s">Menší</button>
+        <button type="button" class="seg-btn" data-size="m">Normální</button>
+        <button type="button" class="seg-btn" data-size="l">Větší</button>
+        <button type="button" class="seg-btn" data-size="xl">Největší</button>
+      </div>
+      <span class="settings-note">Velikost předlohy a pole pro přepis.</span>
+    </div>
+
+    <div class="settings-group">
+      <span class="settings-label">Barva zvýraznění</span>
+      <div class="accent-options" id="accentSwitch" role="group" aria-label="Barva zvýraznění">
+        <button type="button" class="accent-btn" data-accent="green" aria-label="Zelená" title="Zelená"><span style="--sw:#1f6f5c"></span></button>
+        <button type="button" class="accent-btn" data-accent="blue" aria-label="Modrá" title="Modrá"><span style="--sw:#2b5d9e"></span></button>
+        <button type="button" class="accent-btn" data-accent="orange" aria-label="Oranžová" title="Oranžová"><span style="--sw:#b25a12"></span></button>
+        <button type="button" class="accent-btn" data-accent="purple" aria-label="Fialová" title="Fialová"><span style="--sw:#6b4b9a"></span></button>
+      </div>
+    </div>
+
+    <p class="settings-hint">Nastavení se ukládá v tomto prohlížeči.</p>
+  </div>
+</div>
+
 <div class="wrap lesson-shell">
   <section id="overviewView" class="lessons-page">
     <div class="lessons-hero">
@@ -59,14 +117,7 @@
         <h1>Lekce</h1>
         <p class="lead">Jeden tábor = jedna lekce. Každá lekce nejdřív ukáže na klávesnici, jak se dané písmeno píše a kterým prstem, potom opisuješ předlohu do pole pod ní.</p>
       </div>
-      <div class="layout-picker">
-        <span class="layout-picker-label">Rozložení klávesnice</span>
-        <div class="segmented" id="layoutSwitch" role="group" aria-label="Rozložení klávesnice">
-          <button type="button" class="layout-btn" data-layout="qwertz">QWERTZ</button>
-          <button type="button" class="layout-btn" data-layout="qwerty">QWERTY</button>
-        </div>
-        <span class="layout-picker-note" id="layoutNote"></span>
-      </div>
+      <button type="button" class="hero-settings-btn" id="heroSettingsBtn">⚙ Nastavení</button>
     </div>
 
     <div class="lesson-dashboard">
@@ -154,7 +205,7 @@
         </div>
         <div class="typed-block">
           <div class="copy-label">Tvůj přepis <span>– piš sem</span></div>
-          <textarea id="typedText" class="typed-text" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" placeholder="Piš sem opsaný text…" aria-label="Tvůj přepis"></textarea>
+          <textarea id="typedText" class="typed-text" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Tvůj přepis"></textarea>
         </div>
         <div class="exercise-actions">
           <button id="checkBtn" class="btn" type="button">Zkontrolovat</button>
@@ -192,9 +243,16 @@
   if(!D){ return; }
 
   var LAYOUT_KEY = 'keyboardLayout';
+  var THEME_KEY = 'theme';
+  var ACCENT_KEY = 'accent';
+  var TEXT_SIZE_KEY = 'textSize';
+  var SESSION_PREFIX = 'lessonSession_';
 
   var state = {
     layout: readLayout(),
+    theme: readTheme(),
+    accent: readAccent(),
+    textSize: readTextSize(),
     user: readUser(),
     progress: {},
     lesson: null,
@@ -217,6 +275,13 @@
     syncNotice: document.getElementById('syncNotice'),
     layoutSwitch: document.getElementById('layoutSwitch'),
     layoutNote: document.getElementById('layoutNote'),
+    settingsPanel: document.getElementById('settingsPanel'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    settingsClose: document.getElementById('settingsClose'),
+    heroSettingsBtn: document.getElementById('heroSettingsBtn'),
+    themeSwitch: document.getElementById('themeSwitch'),
+    textSizeSwitch: document.getElementById('textSizeSwitch'),
+    accentSwitch: document.getElementById('accentSwitch'),
     runnerLetter: document.getElementById('runnerLetter'),
     runnerKicker: document.getElementById('runnerKicker'),
     runnerTitle: document.getElementById('runnerTitle'),
@@ -248,6 +313,33 @@
     var value = '';
     try { value = localStorage.getItem(LAYOUT_KEY) || ''; } catch(e){}
     return D.layouts[value] ? value : 'qwertz';
+  }
+
+  function readTheme(){
+    var value = '';
+    try { value = localStorage.getItem(THEME_KEY) || ''; } catch(e){}
+    if(value === 'light' || value === 'dark') return value;
+    try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch(e){}
+    return 'light';
+  }
+
+  function readAccent(){
+    var value = '';
+    try { value = localStorage.getItem(ACCENT_KEY) || ''; } catch(e){}
+    return ['green', 'blue', 'orange', 'purple'].indexOf(value) !== -1 ? value : 'green';
+  }
+
+  function readTextSize(){
+    var value = '';
+    try { value = localStorage.getItem(TEXT_SIZE_KEY) || ''; } catch(e){}
+    return ['s', 'm', 'l', 'xl'].indexOf(value) !== -1 ? value : 'm';
+  }
+
+  function applySettings(){
+    var root = document.documentElement;
+    root.setAttribute('data-theme', state.theme);
+    root.setAttribute('data-accent', state.accent);
+    root.setAttribute('data-text-size', state.textSize);
   }
 
   function readUser(){
@@ -392,6 +484,59 @@
     return null;
   }
 
+  function sessionKey(lessonId){
+    var uid = state.user && state.user.id ? state.user.id : 'guest';
+    return SESSION_PREFIX + uid + '_' + lessonId;
+  }
+
+  function readStoredSession(lessonId){
+    try {
+      var raw = localStorage.getItem(sessionKey(lessonId));
+      if(!raw) return null;
+      var saved = JSON.parse(raw);
+      if(!saved || typeof saved !== 'object') return null;
+      var lesson = findLesson(lessonId);
+      if(!lesson) return null;
+      var count = lesson.lessons[0].lines.length;
+      var index = Number(saved.index);
+      if(!(index >= 0 && index < count)) return null;
+      var results = Array.isArray(saved.results) ? saved.results.filter(function(result){
+        return result && typeof result.correct === 'number' && typeof result.length === 'number';
+      }) : [];
+      if(results.length > count) results = results.slice(0, count);
+      return {
+        index: index,
+        results: results,
+        checked: !!saved.checked,
+        lastTyped: typeof saved.lastTyped === 'string' ? saved.lastTyped : '',
+        draft: typeof saved.draft === 'string' ? saved.draft : '',
+        savedAt: saved.savedAt || 0
+      };
+    } catch(e){ return null; }
+  }
+
+  function writeStoredSession(){
+    var lesson = state.lesson;
+    var session = state.session;
+    if(!lesson || !session) return;
+    try {
+      localStorage.setItem(sessionKey(lesson.id), JSON.stringify({
+        index: session.index,
+        results: session.results,
+        checked: state.step === 'checked',
+        lastTyped: session.lastTyped || '',
+        draft: session.draft || '',
+        savedAt: Date.now()
+      }));
+    } catch(e){}
+  }
+
+  function clearStoredSession(lessonId){
+    var id = lessonId || (state.lesson && state.lesson.id);
+    if(!id) return;
+    try { localStorage.removeItem(sessionKey(id)); } catch(e){}
+  }
+
   function renderLayoutPicker(){
     if(!el.layoutSwitch) return;
     el.layoutSwitch.querySelectorAll('.layout-btn').forEach(function(btn){
@@ -400,6 +545,41 @@
     if(el.layoutNote){
       el.layoutNote.textContent = D.layouts[state.layout].description;
     }
+  }
+
+  function renderSettings(){
+    if(el.themeSwitch){
+      el.themeSwitch.querySelectorAll('.seg-btn').forEach(function(btn){
+        btn.classList.toggle('is-active', btn.getAttribute('data-theme-value') === state.theme);
+      });
+    }
+    if(el.textSizeSwitch){
+      el.textSizeSwitch.querySelectorAll('.seg-btn').forEach(function(btn){
+        btn.classList.toggle('is-active', btn.getAttribute('data-size') === state.textSize);
+      });
+    }
+    if(el.accentSwitch){
+      el.accentSwitch.querySelectorAll('.accent-btn').forEach(function(btn){
+        btn.classList.toggle('is-active', btn.getAttribute('data-accent') === state.accent);
+      });
+    }
+    renderLayoutPicker();
+  }
+
+  function openSettings(){
+    if(!el.settingsPanel) return;
+    el.settingsPanel.hidden = false;
+    if(el.settingsBtn) el.settingsBtn.setAttribute('aria-expanded', 'true');
+    renderSettings();
+    document.body.style.overflow = 'hidden';
+    if(el.settingsClose) el.settingsClose.focus({ preventScroll: true });
+  }
+
+  function closeSettings(){
+    if(!el.settingsPanel) return;
+    el.settingsPanel.hidden = true;
+    if(el.settingsBtn) el.settingsBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
   }
 
   function escapeHtml(text){
@@ -580,11 +760,12 @@
     var html = '';
     D.lessons.forEach(function(lesson){
       var doneLesson = isDone(lesson.id);
+      var hasSaved = !!readStoredSession(lesson.id);
       var isCurrent = !!current && current.id === lesson.id;
       var finger = primaryFinger(lesson);
       var color = finger ? finger.color : 'var(--accent)';
-      var stateLabel = doneLesson ? '✓ Hotovo' : (isCurrent ? '▶ Pokračuj' : '○ Nezačato');
-      var actionLabel = doneLesson ? 'Zopakovat' : (isCurrent ? 'Pokračovat' : 'Začít');
+      var stateLabel = doneLesson ? '✓ Hotovo' : (hasSaved ? '▶ Rozpracováno' : (isCurrent ? '▶ Pokračuj' : '○ Nezačato'));
+      var actionLabel = doneLesson ? 'Zopakovat' : (hasSaved || isCurrent ? 'Pokračovat' : 'Začít');
       var glyph = lessonGlyph(lesson);
 
       html += '<article class="lesson-card' + (doneLesson ? ' is-done' : '') + (isCurrent ? ' is-current' : '') +
@@ -751,6 +932,7 @@
     var lesson = state.lesson;
     if(!lesson) return;
 
+    clearStoredSession(lesson.id);
     state.session = null;
     state.step = 'intro';
 
@@ -772,7 +954,8 @@
       index: 0,
       startedAt: 0,
       results: [],
-      lastTyped: ''
+      lastTyped: '',
+      draft: ''
     };
 
     el.guidePanel.style.display = 'none';
@@ -796,6 +979,7 @@
     state.step = 'exercise';
     session.startedAt = 0;
     session.lastTyped = '';
+    session.draft = '';
 
     el.exerciseCount.textContent = 'Cvičení ' + (session.index + 1) + ' / ' + session.lines.length;
     el.typingHint.textContent = 'Opiš předlohu do pole níže, pak klikni na Zkontrolovat.';
@@ -805,6 +989,8 @@
     el.checkFeedback.style.display = 'none';
     el.checkFeedback.innerHTML = '';
     renderExerciseTarget(false);
+
+    writeStoredSession();
 
     el.typedText.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -872,6 +1058,7 @@
     var wpm = (correct / 5) / (elapsed / 60);
 
     session.lastTyped = typed;
+    session.draft = typed;
     session.results.push({
       correct: correct,
       length: length,
@@ -879,6 +1066,7 @@
       elapsed: elapsed
     });
     state.step = 'checked';
+    writeStoredSession();
 
     renderExerciseTarget(true);
     renderExerciseCheck(accuracy, errors, elapsed, wpm, typed.length > target.length);
@@ -945,6 +1133,12 @@
     var lesson = state.lesson;
     if(!session || !lesson) return;
 
+    // Lekce se smí dokončit, jen když uživatel zkontroloval všechna cvičení.
+    if(state.step !== 'checked' || session.results.length !== session.lines.length){
+      toast('Lekci dokončíš až po zkontrolování všech cvičení.');
+      return;
+    }
+
     var correct = 0;
     var length = 0;
     var errors = 0;
@@ -966,6 +1160,7 @@
     wpm = Math.round(wpm * 10) / 10;
 
     state.step = 'result';
+    clearStoredSession(lesson.id);
 
     var entry = {
       unit: lesson.id,
@@ -1065,9 +1260,67 @@
     el.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  function resumeLesson(saved){
+    var lesson = state.lesson;
+    if(!lesson) return;
+    var content = lesson.lessons[0];
+
+    state.session = {
+      lines: content.lines.slice(),
+      index: saved.index,
+      startedAt: 0,
+      results: saved.results.slice(),
+      lastTyped: saved.lastTyped,
+      draft: saved.draft
+    };
+    var session = state.session;
+
+    el.guidePanel.style.display = 'none';
+    el.resultPanel.style.display = 'none';
+    el.typingPanel.style.display = 'block';
+    el.exerciseCount.textContent = 'Cvičení ' + (session.index + 1) + ' / ' + session.lines.length;
+    el.typedText.disabled = false;
+    el.checkBtn.style.display = '';
+    el.checkFeedback.style.display = 'none';
+    el.checkFeedback.innerHTML = '';
+
+    var checked = saved.checked && session.results.length === session.index + 1;
+    var lastResult = checked ? session.results[session.index] : null;
+
+    if(checked && lastResult){
+      state.step = 'checked';
+      session.lastTyped = saved.lastTyped;
+      el.typedText.value = saved.lastTyped;
+      el.typedText.disabled = true;
+      el.checkBtn.style.display = 'none';
+      el.typingHint.textContent = 'Cvičení je zkontrolované. Pokračuj tlačítkem níže.';
+      renderExerciseTarget(true);
+
+      var accuracy = lastResult.length ? (lastResult.correct / lastResult.length * 100) : 100;
+      var elapsed = Math.max(1, lastResult.elapsed || 1);
+      var wpm = (lastResult.correct / 5) / (elapsed / 60);
+      renderExerciseCheck(accuracy, lastResult.errors || 0, elapsed, wpm, saved.lastTyped.length > exerciseTarget().length);
+    } else {
+      state.step = 'exercise';
+      if(session.results.length > session.index) session.results = session.results.slice(0, session.index);
+      session.startedAt = 0;
+      session.lastTyped = '';
+      el.typedText.value = saved.draft || '';
+      el.typingHint.textContent = 'Opiš předlohu do pole níže, pak klikni na Zkontrolovat.';
+      renderExerciseTarget(false);
+      writeStoredSession();
+      el.typedText.focus({ preventScroll: true });
+    }
+
+    renderRunnerHead();
+    window.scrollTo(0, 0);
+  }
+
   function openLesson(lessonId){
     var lesson = findLesson(lessonId);
     if(!lesson) return;
+
+    var saved = readStoredSession(lesson.id);
 
     state.lesson = lesson;
     state.session = null;
@@ -1082,7 +1335,8 @@
     } catch(e){}
     window.scrollTo(0, 0);
 
-    startLesson();
+    if(saved) resumeLesson(saved);
+    else startLesson();
   }
 
   function showOverview(){
@@ -1215,6 +1469,54 @@
     }
   }
 
+  function setupSettings(){
+    if(el.settingsBtn) el.settingsBtn.addEventListener('click', openSettings);
+    if(el.heroSettingsBtn) el.heroSettingsBtn.addEventListener('click', openSettings);
+    if(el.settingsClose) el.settingsClose.addEventListener('click', closeSettings);
+    if(el.settingsPanel){
+      el.settingsPanel.addEventListener('click', function(e){
+        var close = e.target.closest ? e.target.closest('[data-settings-close]') : null;
+        if(close) closeSettings();
+      });
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && el.settingsPanel && !el.settingsPanel.hidden) closeSettings();
+    });
+
+    if(el.themeSwitch){
+      el.themeSwitch.addEventListener('click', function(e){
+        var btn = e.target.closest ? e.target.closest('[data-theme-value]') : null;
+        if(!btn) return;
+        state.theme = btn.getAttribute('data-theme-value');
+        try { localStorage.setItem(THEME_KEY, state.theme); } catch(err){}
+        applySettings();
+        renderSettings();
+      });
+    }
+
+    if(el.textSizeSwitch){
+      el.textSizeSwitch.addEventListener('click', function(e){
+        var btn = e.target.closest ? e.target.closest('[data-size]') : null;
+        if(!btn) return;
+        state.textSize = btn.getAttribute('data-size');
+        try { localStorage.setItem(TEXT_SIZE_KEY, state.textSize); } catch(err){}
+        applySettings();
+        renderSettings();
+      });
+    }
+
+    if(el.accentSwitch){
+      el.accentSwitch.addEventListener('click', function(e){
+        var btn = e.target.closest ? e.target.closest('[data-accent]') : null;
+        if(!btn) return;
+        state.accent = btn.getAttribute('data-accent');
+        try { localStorage.setItem(ACCENT_KEY, state.accent); } catch(err){}
+        applySettings();
+        renderSettings();
+      });
+    }
+  }
+
   function setupLayoutSwitch(){
     el.layoutSwitch.addEventListener('click', function(e){
       var btn = e.target.closest ? e.target.closest('.layout-btn') : null;
@@ -1241,9 +1543,11 @@
   }
 
   function init(){
-    renderLayoutPicker();
+    applySettings();
+    renderSettings();
     setupLessonsGrid();
     setupLayoutSwitch();
+    setupSettings();
     setupHeader();
 
     var backBtn = document.getElementById('backBtn');
@@ -1253,8 +1557,10 @@
     if(el.typedText){
       el.typedText.addEventListener('input', function(){
         var session = state.session;
-        if(!session || state.step !== 'exercise' || session.startedAt) return;
-        session.startedAt = Date.now();
+        if(!session || state.step !== 'exercise') return;
+        if(!session.startedAt) session.startedAt = Date.now();
+        session.draft = el.typedText.value;
+        writeStoredSession();
       });
     }
     var restartBtn = document.getElementById('restartBtn');
@@ -1263,10 +1569,10 @@
     var themeBtn = document.getElementById('themeBtn');
     if(themeBtn){
       themeBtn.addEventListener('click', function(){
-        var cur = document.documentElement.getAttribute('data-theme');
-        var next = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem(THEME_KEY, state.theme); } catch(e){}
+        applySettings();
+        renderSettings();
       });
     }
 
