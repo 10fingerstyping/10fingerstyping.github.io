@@ -2,7 +2,7 @@ import os
 import re
 import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from flask import Flask, g, jsonify, request
@@ -22,6 +22,11 @@ MIN_PASSWORD_LEN = 8
 MAX_UNIT_LEN = 8
 MAX_LESSON_INDEX = 200
 MIN_COMPLETED_ACCURACY = 90.0
+# Odměny: drahokamy za první dokončení lekce, zmrazení za drahokamy.
+GEMS_PER_LESSON = 10
+FREEZE_PRICE = 30
+MAX_FREEZES = 3
+MAX_ACTIVE_DATE_AHEAD_DAYS = 1  # tolerance kvůli časovým pásmům
 
 
 def get_db():
@@ -82,8 +87,33 @@ def init_db():
         )
         """
     )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS rewards (
+            user_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            gems         INTEGER NOT NULL DEFAULT 0,
+            streak       INTEGER NOT NULL DEFAULT 0,
+            best_streak  INTEGER NOT NULL DEFAULT 0,
+            freezes      INTEGER NOT NULL DEFAULT 0,
+            last_active  TEXT,
+            updated_at   TEXT    NOT NULL
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS rewarded_lessons (
+            user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unit        TEXT    NOT NULL,
+            lesson      INTEGER NOT NULL,
+            awarded_at  TEXT    NOT NULL,
+            PRIMARY KEY (user_id, unit, lesson)
+        )
+        """
+    )
     db.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_rewarded_user ON rewarded_lessons(user_id)")
     db.commit()
     db.close()
 
@@ -135,6 +165,129 @@ def require_user():
     if user is None:
         return None, error("Pro uložení pokroku se musíte přihlásit.", 401)
     return user, None
+
+
+def parse_active_date(value):
+    """Datum aktivity posílá klient podle svého místního kalendáře."""
+    parsed = None
+    if isinstance(value, str):
+        try:
+            parsed = datetime.strptime(value.strip()[:10], "%Y-%m-%d").date()
+        except ValueError:
+            parsed = None
+    if parsed is None:
+        return datetime.now(timezone.utc).date()
+
+    # Malá tolerance kvůli časovým pásmům, ale ne libovolně daleko v budoucnosti.
+    limit = datetime.now(timezone.utc).date() + timedelta(days=MAX_ACTIVE_DATE_AHEAD_DAYS)
+    return min(parsed, limit)
+
+
+def ensure_rewards(db, user_id):
+    """Vrátí řádek odměn a při prvním použití doplní drahokamy za hotové lekce."""
+    row = db.execute("SELECT * FROM rewards WHERE user_id = ?", (user_id,)).fetchone()
+    if row is not None:
+        return row
+
+    now = now_iso()
+    db.execute(
+        "INSERT OR IGNORE INTO rewards "
+        "(user_id, gems, streak, best_streak, freezes, last_active, updated_at) "
+        "VALUES (?, 0, 0, 0, 0, NULL, ?)",
+        (user_id, now),
+    )
+
+    backfilled = 0
+    completed_rows = db.execute(
+        "SELECT unit, lesson FROM progress WHERE user_id = ? AND completed = 1",
+        (user_id,),
+    ).fetchall()
+    for progress_row in completed_rows:
+        cur = db.execute(
+            "INSERT OR IGNORE INTO rewarded_lessons "
+            "(user_id, unit, lesson, awarded_at) VALUES (?, ?, ?, ?)",
+            (user_id, progress_row["unit"], progress_row["lesson"], now),
+        )
+        if cur.rowcount:
+            backfilled += GEMS_PER_LESSON
+
+    if backfilled:
+        db.execute(
+            "UPDATE rewards SET gems = gems + ?, updated_at = ? WHERE user_id = ?",
+            (backfilled, now, user_id),
+        )
+    db.commit()
+    return db.execute("SELECT * FROM rewards WHERE user_id = ?", (user_id,)).fetchone()
+
+
+def rewards_public(db, user_id):
+    row = ensure_rewards(db, user_id)
+    return {
+        "gems": row["gems"],
+        "streak": row["streak"],
+        "best_streak": row["best_streak"],
+        "freezes": row["freezes"],
+        "last_active": row["last_active"],
+        "gems_per_lesson": GEMS_PER_LESSON,
+        "freeze_price": FREEZE_PRICE,
+        "max_freezes": MAX_FREEZES,
+    }
+
+
+def update_streak(db, row, active_date):
+    """Posune denní sérii. Vynechané dny spotřebují zmrazení, jinak série začne znovu."""
+    user_id = row["user_id"]
+    streak = int(row["streak"] or 0)
+    best = int(row["best_streak"] or 0)
+    freezes = int(row["freezes"] or 0)
+    before = streak
+    freeze_used = 0
+
+    last_date = None
+    if row["last_active"]:
+        try:
+            last_date = datetime.strptime(row["last_active"][:10], "%Y-%m-%d").date()
+        except ValueError:
+            last_date = None
+
+    if last_date is None:
+        if streak <= 0:
+            streak = 1
+    else:
+        day_diff = (active_date - last_date).days
+        if day_diff <= 0:
+            # Stejný den (nebo starší datum) sérii nemění.
+            return {
+                "streak": streak,
+                "before": before,
+                "change": 0,
+                "freeze_used": 0,
+                "best": best,
+            }
+        if day_diff == 1:
+            streak = (streak + 1) if streak > 0 else 1
+        else:
+            missed = day_diff - 1
+            if freezes >= missed:
+                freezes -= missed
+                freeze_used = missed
+                streak = (streak + 1) if streak > 0 else 1
+            else:
+                streak = 1
+
+    best = max(best, streak)
+    db.execute(
+        "UPDATE rewards SET streak = ?, best_streak = ?, freezes = ?, "
+        "last_active = ?, updated_at = ? WHERE user_id = ?",
+        (streak, best, freezes, active_date.isoformat(), now_iso(), user_id),
+    )
+    return {
+        "streak": streak,
+        "before": before,
+        "change": streak - before,
+        "freeze_used": freeze_used,
+        "best": best,
+    }
 
 
 @app.get("/api/health")
@@ -322,6 +475,104 @@ def save_progress():
             },
         }
     )
+
+
+@app.get("/api/rewards")
+def get_rewards():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    db = get_db()
+    return jsonify({"ok": True, "rewards": rewards_public(db, user["id"])})
+
+
+@app.post("/api/rewards/lesson")
+def award_lesson_rewards():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    unit = str(data.get("unit") or "").strip().lower()
+    if not unit or len(unit) > MAX_UNIT_LEN or not re.match(r"^[a-z0-9_]+$", unit):
+        return error("Neplatná jednotka.")
+    try:
+        lesson = int(data.get("lesson"))
+    except (TypeError, ValueError):
+        return error("Neplatná lekce.")
+    if lesson < 1 or lesson > MAX_LESSON_INDEX:
+        return error("Neplatná lekce.")
+
+    try:
+        accuracy = float(data.get("accuracy") or 0)
+    except (TypeError, ValueError):
+        accuracy = 0.0
+    accuracy = max(0.0, min(100.0, accuracy))
+    completed = bool(data.get("completed")) and accuracy >= MIN_COMPLETED_ACCURACY
+    active_date = parse_active_date(data.get("date"))
+
+    db = get_db()
+    ensure_rewards(db, user["id"])
+
+    gems_awarded = 0
+    first_time = False
+    if completed:
+        cur = db.execute(
+            "INSERT OR IGNORE INTO rewarded_lessons "
+            "(user_id, unit, lesson, awarded_at) VALUES (?, ?, ?, ?)",
+            (user["id"], unit, lesson, now_iso()),
+        )
+        if cur.rowcount:
+            gems_awarded = GEMS_PER_LESSON
+            first_time = True
+            db.execute(
+                "UPDATE rewards SET gems = gems + ?, updated_at = ? WHERE user_id = ?",
+                (gems_awarded, now_iso(), user["id"]),
+            )
+
+    row = db.execute("SELECT * FROM rewards WHERE user_id = ?", (user["id"],)).fetchone()
+    streak = update_streak(db, row, active_date)
+    db.commit()
+
+    return jsonify(
+        {
+            "ok": True,
+            "rewards": rewards_public(db, user["id"]),
+            "reward": {
+                "gems": gems_awarded,
+                "first_time": first_time,
+                "streak": streak["streak"],
+                "streak_before": streak["before"],
+                "streak_change": streak["change"],
+                "freeze_used": streak["freeze_used"],
+                "best_streak": streak["best"],
+                "date": active_date.isoformat(),
+            },
+        }
+    )
+
+
+@app.post("/api/rewards/buy")
+def buy_freeze():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    db = get_db()
+    row = ensure_rewards(db, user["id"])
+    if row["freezes"] >= MAX_FREEZES:
+        return error(f"Máš maximální počet zmrazení ({MAX_FREEZES}).")
+    if row["gems"] < FREEZE_PRICE:
+        return error(f"Na zmrazení nemáš dost drahokamů. Potřebuješ {FREEZE_PRICE}.")
+
+    db.execute(
+        "UPDATE rewards SET gems = gems - ?, freezes = freezes + 1, updated_at = ? "
+        "WHERE user_id = ?",
+        (FREEZE_PRICE, now_iso(), user["id"]),
+    )
+    db.commit()
+    return jsonify({"ok": True, "rewards": rewards_public(db, user["id"])})
 
 
 if __name__ == "__main__":

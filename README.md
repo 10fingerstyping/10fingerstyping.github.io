@@ -12,6 +12,11 @@ které ji mohou využívat při výuce.
 - **Přepínatelné rozvržení klávesnice** – podpora QWERTZ i QWERTY podle zvyku
   nebo požadavků školy.
 - **Dva jazyky** – procvičování v češtině i angličtině.
+- **Přesnost a rychlost** – po každé lekci uvidíte přehled výsledků včetně
+  počtu chyb a času.
+- **Denní streak a drahokamy** – za každou dokončenou lekci získáte drahokamy.
+  Pravidelným učením roste denní série a v obchodě se za drahokamy kupuje
+  zmrazení řady pro dny, kdy si nestihnete zacvičit.
 - **Dvě verze** – samostatná verze pro běžné uživatele a verze pro školy, kde
   učitelé zadávají lekce a testy celé třídě a sledují pokrok žáků.
 
@@ -20,8 +25,8 @@ které ji mohou využívat při výuce.
 Běží statická prezentace s funkčním přepínáním jazyka, motivu a formuláři pro
 přihlášení a registraci. Součástí je výuka psaní po jednotlivých písmenech –
 každá jednotka má úvodní lekci s vysvětlením klávesy a prstu a další
-procvičování, která navazují na předchozí písmena. Pokrok se ukládá k účtu
-uživatele na API serveru.
+procvičování, která navazují na předchozí písmena. Pokrok, denní série,
+drahokamy a zakoupená zmrazení se ukládají k účtu uživatele na API serveru.
 
 ## Lekce
 
@@ -32,6 +37,9 @@ uživatele na API serveru.
 - Cvičení vždy obsahují i všechna předchozí písmena.
 - Přepínatelné rozložení QWERTZ / QWERTY.
 - Přesnost, rychlost, počet chyb a dokončení lekce se ukládají na server.
+- Za každou lekci dokončenou alespoň na 90 % přesnosti získáte 10 drahokamů.
+- Denní série roste za každý den s dokončenou lekcí. Vynechaný den může
+  zachránit zmrazení řady, které se kupuje v obchodě za drahokamy.
 
 ## Server
 

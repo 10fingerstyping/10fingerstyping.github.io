@@ -13,7 +13,9 @@ přihlášení a ukládání pokroku.
   se posílá v hlavičce `Authorization: Bearer <token>`.
 - Ukládá pokrok z lekcí do tabulky `progress` – pro každého uživatele
   a tábor (jeden tábor = jedna lekce) zvlášť.
-- Nabízí API pro registraci, přihlášení, odhlášení a práci s pokrokem.
+- Vede denní sérii (`streak`), drahokamy a zmrazení řady v tabulce `rewards`.
+  Drahokamy se dávají za první dokončení lekce, zmrazení se za ně kupují.
+- Nabízí API pro registraci, přihlášení, odhlášení, práci s pokrokem a odměnami.
 
 ## Databáze
 
@@ -52,6 +54,31 @@ přihlášení a ukládání pokroku.
 
 Pro dvojici `user_id` + `unit` + `lesson` existuje jen jeden řádek; nový
 pokus se do něj sloučí (zůstává nejlepší přesnost a rychlost).
+
+### Tabulka `rewards`
+
+| sloupec      | typ     | popis                                        |
+|--------------|---------|----------------------------------------------|
+| `user_id`    | INTEGER | primární klíč, cizí klíč na `users.id`       |
+| `gems`       | INTEGER | počet drahokamů                              |
+| `streak`     | INTEGER | aktuální denní série                         |
+| `best_streak`| INTEGER | nejdelší dosažená série                      |
+| `freezes`    | INTEGER | počet koupených zmrazení (max. 3)            |
+| `last_active`| TEXT    | poslední den aktivity (`YYYY-MM-DD`)         |
+| `updated_at` | TEXT    | čas poslední změny (UTC, ISO 8601)           |
+
+### Tabulka `rewarded_lessons`
+
+| sloupec     | typ     | popis                                      |
+|-------------|---------|--------------------------------------------|
+| `user_id`   | INTEGER | cizí klíč na `users.id`                    |
+| `unit`      | TEXT    | identifikátor lekce                        |
+| `lesson`    | INTEGER | pořadí lekce (nově vždy `1`)               |
+| `awarded_at`| TEXT    | čas udělení drahokamů (UTC, ISO 8601)      |
+
+Dvojice `user_id` + `unit` + `lesson` je primární klíč, takže drahokamy za
+jednu lekci nelze získat opakovaně. Při prvním načtení odměn se doplní
+drahokamy i za lekce dokončené před zavedením odměn.
 
 ### Převod staršího pokroku
 
@@ -131,6 +158,46 @@ Hlavička `Authorization: Bearer <token>`. Tělo požadavku:
 Lekce se označí jako dokončená jen při přesnosti alespoň 90 %. Vrací aktuální
 řádek pokroku. Opakovaný pokus nikdy nesníží nejlepší přesnost ani rychlost.
 V nové osnově je `lesson` vždy `1`, protože každý tábor má právě jednu lekci.
+
+### `GET /api/rewards`
+
+Hlavička `Authorization: Bearer <token>`. Vrací stav odměn přihlášeného
+uživatele:
+
+```json
+{
+  "ok": true,
+  "rewards": {
+    "gems": 40,
+    "streak": 3,
+    "best_streak": 5,
+    "freezes": 1,
+    "last_active": "2026-11-02",
+    "gems_per_lesson": 10,
+    "freeze_price": 30,
+    "max_freezes": 3
+  }
+}
+```
+
+### `POST /api/rewards/lesson`
+
+Hlavička `Authorization: Bearer <token>`. Tělo požadavku:
+
+```json
+{ "unit": "15", "lesson": 1, "accuracy": 97.5, "wpm": 22.4, "completed": true, "date": "2026-11-02" }
+```
+
+Za první dokončení lekce na alespoň 90 % přesnosti přidá 10 drahokamů. Každá
+úspěšně dokončená lekce také posune denní sérii – pokud uživatel vynechal dny
+a má dost zmrazení, automaticky se spotřebují. `date` posílá klient podle
+svého místního kalendáře. Odpověď obsahuje aktuální `rewards` a detail
+`reward` (`gems`, `first_time`, `streak`, `streak_change`, `freeze_used`).
+
+### `POST /api/rewards/buy`
+
+Hlavička `Authorization: Bearer <token>`. Kupuje jedno zmrazení řady za 30
+drahokamů. Vrací aktuální `rewards`. Nejvýš lze mít tři zmrazení.
 
 ### `GET /api/health`
 

@@ -332,6 +332,58 @@ footer{
   background:var(--card);color:var(--ink);cursor:pointer;transition:.2s;
 }
 .hero-settings-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;align-self:flex-end}
+.hero-actions .hero-settings-btn{align-self:auto}
+
+/* --- odměny a obchod ----------------------------------------------------- */
+
+.rewards-bar{
+  display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;
+  align-items:stretch;margin-bottom:22px;
+}
+.reward-stat{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:13px 16px;min-width:0;
+}
+.reward-icon{
+  width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;
+  font-size:21px;line-height:1;border-radius:50%;
+  background:var(--info);border:1px solid var(--line);
+}
+.reward-copy{display:grid;gap:1px;min-width:0}
+.reward-label{font-size:10.5px;font-weight:700;letter-spacing:.55px;text-transform:uppercase;color:var(--muted)}
+.reward-stat strong{font-size:20px;line-height:1.2;letter-spacing:-.3px}
+.reward-sub{font-size:11.5px;color:var(--muted);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-open-btn{align-self:center;justify-self:end;padding:12px 24px;font-size:15px;white-space:nowrap}
+
+.shop-card{width:min(460px,100%)}
+.shop-balance{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.shop-balance-item{background:var(--info);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+.shop-balance-item strong{display:block;font-size:20px;line-height:1.2;letter-spacing:-.3px}
+.shop-item{
+  display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
+  padding:16px;margin-bottom:16px;
+  background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--accent);border-radius:var(--radius);
+}
+.shop-item-icon{
+  width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;
+  font-size:25px;line-height:1;border-radius:12px;
+  background:var(--info);border:1px solid var(--line);
+}
+.shop-item-copy{flex:1;min-width:180px}
+.shop-item-copy h3{font-size:17px;margin-bottom:4px}
+.shop-item-copy p{font-size:13px;line-height:1.5;color:var(--muted)}
+.shop-item-buy{display:grid;gap:8px;justify-items:end;margin-left:auto}
+.shop-price{font-size:14px;font-weight:700;white-space:nowrap;color:var(--muted)}
+.shop-buy-btn{padding:10px 20px;font-size:14px}
+.shop-buy-btn:disabled{opacity:.5;cursor:not-allowed}
+.shop-earn{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+.shop-earn h3{font-size:15px;margin-bottom:6px}
+.shop-earn p{font-size:13px;line-height:1.55;color:var(--muted);margin-bottom:8px}
+.shop-earn p:last-child{margin-bottom:0}
+
 
 .settings-panel{position:fixed;inset:0;z-index:300;display:flex;justify-content:flex-end}
 .settings-panel[hidden]{display:none}
@@ -613,6 +665,13 @@ footer{
 .result-stats span{display:block;font-size:10.5px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--muted)}
 .result-stats strong{font-size:21px;line-height:1.2}
 .result-stats small{font-size:10.5px;font-weight:400;color:var(--muted)}
+.result-reward{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:-6px 0 22px}
+.reward-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border:1px solid var(--line);border-radius:20px;
+  background:var(--info);font-size:12.5px;font-weight:600;
+}
+.reward-chip.is-gems{border-color:var(--accent);color:var(--accent)}
 .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .result-actions .btn{padding:12px 24px;font-size:15px}
 
@@ -628,6 +687,8 @@ footer{
   .lessons-hero .lead{font-size:15px}
   .lesson-dashboard{grid-template-columns:1fr 1fr}
   .lessons-grid{grid-template-columns:1fr}
+  .rewards-bar{grid-template-columns:1fr 1fr}
+  .shop-open-btn{grid-column:1 / -1;justify-self:stretch}
   .keyboard{--kb-size:31px}
   .kb-row{gap:4px}
   .kb-row-1{margin-left:9px}
@@ -649,6 +710,8 @@ footer{
 @media(max-width:460px){
   .lesson-dashboard{grid-template-columns:1fr}
   .dash-card strong{font-size:20px}
+  .rewards-bar{grid-template-columns:1fr}
+  .shop-balance{grid-template-columns:1fr}
   .keyboard{--kb-size:27px}
   .kb-row{gap:3px}
   .kb-key{font-size:10px}

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="style.css?v=19">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -109,6 +109,54 @@
   </div>
 </div>
 
+<div id="shopPanel" class="settings-panel" hidden>
+  <div class="settings-backdrop" data-shop-close></div>
+  <div class="settings-card shop-card" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+    <div class="settings-head">
+      <div>
+        <span class="eyebrow">Drahokamy a série</span>
+        <h2 id="shopTitle">Obchod</h2>
+      </div>
+      <button type="button" class="settings-close" id="shopClose" aria-label="Zavřít obchod">✕</button>
+    </div>
+
+    <div class="shop-balance">
+      <div class="shop-balance-item">
+        <span class="reward-label">Drahokamy</span>
+        <strong id="shopGems">0</strong>
+      </div>
+      <div class="shop-balance-item">
+        <span class="reward-label">Zmrazení</span>
+        <strong id="shopFreezes">0 / 3</strong>
+      </div>
+      <div class="shop-balance-item">
+        <span class="reward-label">Streak</span>
+        <strong id="shopStreak">0 dní</strong>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="shop-item-icon" aria-hidden="true">❄</div>
+      <div class="shop-item-copy">
+        <h3>Zmrazení řady</h3>
+        <p>Když jeden den vynecháš, zmrazení se automaticky spotřebuje a série ti zůstane. Můžeš mít nejvýš tři.</p>
+      </div>
+      <div class="shop-item-buy">
+        <span class="shop-price"><strong id="shopPrice">30</strong> 💎</span>
+        <button type="button" class="btn shop-buy-btn" id="buyFreezeBtn">Koupit</button>
+      </div>
+    </div>
+
+    <p class="settings-note" id="shopNote"></p>
+
+    <div class="shop-earn">
+      <h3>Jak získat drahokamy</h3>
+      <p>Za každou lekci dokončenou alespoň na 90 % přesnosti dostaneš <strong>10 drahokamů</strong>. Opakování už drahokamy nepřináší, ale počítá se do denního streaku.</p>
+      <p>Streak roste za každý den, kdy dokončíš nebo zopakuješ lekci. Jeden vynechaný den ti zachrání jedno zmrazení.</p>
+    </div>
+  </div>
+</div>
+
 <div class="wrap lesson-shell">
   <section id="overviewView" class="lessons-page">
     <div class="lessons-hero">
@@ -117,7 +165,38 @@
         <h1>Lekce</h1>
         <p class="lead">Jeden tábor = jedna lekce. Každá lekce nejdřív ukáže na klávesnici, jak se dané písmeno píše a kterým prstem, potom opisuješ předlohu do pole pod ní.</p>
       </div>
-      <button type="button" class="hero-settings-btn" id="heroSettingsBtn">⚙ Nastavení</button>
+      <div class="hero-actions">
+        <button type="button" class="hero-settings-btn" id="heroShopBtn">💎 Obchod</button>
+        <button type="button" class="hero-settings-btn" id="heroSettingsBtn">⚙ Nastavení</button>
+      </div>
+    </div>
+
+    <div class="rewards-bar" id="rewardsBar">
+      <div class="reward-stat">
+        <span class="reward-icon" aria-hidden="true">🔥</span>
+        <div class="reward-copy">
+          <span class="reward-label">Denní streak</span>
+          <strong id="rewardStreak">0 dní</strong>
+          <span class="reward-sub" id="rewardBest">Nejlepší 0</span>
+        </div>
+      </div>
+      <div class="reward-stat">
+        <span class="reward-icon" aria-hidden="true">💎</span>
+        <div class="reward-copy">
+          <span class="reward-label">Drahokamy</span>
+          <strong id="rewardGems">0</strong>
+          <span class="reward-sub">10 za lekci</span>
+        </div>
+      </div>
+      <div class="reward-stat">
+        <span class="reward-icon" aria-hidden="true">❄</span>
+        <div class="reward-copy">
+          <span class="reward-label">Zmrazení řady</span>
+          <strong id="rewardFreezes">0 / 3</strong>
+          <span class="reward-sub">ochrání vynechaný den</span>
+        </div>
+      </div>
+      <button type="button" class="btn shop-open-btn" id="shopOpenBtn">Obchod →</button>
     </div>
 
     <div class="lesson-dashboard">
@@ -255,6 +334,7 @@
     textSize: readTextSize(),
     user: readUser(),
     progress: {},
+    rewards: null,
     lesson: null,
     session: null,
     step: 'overview',
@@ -279,6 +359,20 @@
     settingsBtn: document.getElementById('settingsBtn'),
     settingsClose: document.getElementById('settingsClose'),
     heroSettingsBtn: document.getElementById('heroSettingsBtn'),
+    shopPanel: document.getElementById('shopPanel'),
+    shopClose: document.getElementById('shopClose'),
+    heroShopBtn: document.getElementById('heroShopBtn'),
+    shopOpenBtn: document.getElementById('shopOpenBtn'),
+    buyFreezeBtn: document.getElementById('buyFreezeBtn'),
+    shopNote: document.getElementById('shopNote'),
+    shopGems: document.getElementById('shopGems'),
+    shopFreezes: document.getElementById('shopFreezes'),
+    shopStreak: document.getElementById('shopStreak'),
+    shopPrice: document.getElementById('shopPrice'),
+    rewardStreak: document.getElementById('rewardStreak'),
+    rewardBest: document.getElementById('rewardBest'),
+    rewardGems: document.getElementById('rewardGems'),
+    rewardFreezes: document.getElementById('rewardFreezes'),
     themeSwitch: document.getElementById('themeSwitch'),
     textSizeSwitch: document.getElementById('textSizeSwitch'),
     accentSwitch: document.getElementById('accentSwitch'),
@@ -348,6 +442,163 @@
       if(u && (u.username || u.email)) return u;
     } catch(e){}
     return null;
+  }
+
+  function dayLabel(count){
+    var n = Number(count) || 0;
+    if(n === 1) return 'den';
+    if(n >= 2 && n <= 4) return 'dny';
+    return 'dní';
+  }
+
+  function localDateISO(){
+    var d = new Date();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    return d.getFullYear() + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+  }
+
+  function rewardsCacheKey(){
+    return 'rewardsCache_' + (state.user && state.user.id ? state.user.id : 'guest');
+  }
+
+  function readRewardsCache(){
+    try {
+      var cached = JSON.parse(localStorage.getItem(rewardsCacheKey()) || 'null');
+      if(cached && typeof cached === 'object') state.rewards = cached;
+    } catch(e){}
+  }
+
+  function writeRewardsCache(){
+    try {
+      if(state.rewards) localStorage.setItem(rewardsCacheKey(), JSON.stringify(state.rewards));
+      else localStorage.removeItem(rewardsCacheKey());
+    } catch(e){}
+  }
+
+  function renderRewards(){
+    var r = state.rewards;
+    if(!r) return;
+
+    if(el.rewardStreak) el.rewardStreak.textContent = r.streak + ' ' + dayLabel(r.streak);
+    if(el.rewardBest) el.rewardBest.textContent = 'Nejlepší ' + r.best_streak;
+    if(el.rewardGems) el.rewardGems.textContent = r.gems;
+    if(el.rewardFreezes) el.rewardFreezes.textContent = r.freezes + ' / ' + r.max_freezes;
+
+    if(el.shopGems) el.shopGems.textContent = r.gems;
+    if(el.shopFreezes) el.shopFreezes.textContent = r.freezes + ' / ' + r.max_freezes;
+    if(el.shopStreak) el.shopStreak.textContent = r.streak + ' ' + dayLabel(r.streak);
+    if(el.shopPrice) el.shopPrice.textContent = r.freeze_price;
+
+    if(el.buyFreezeBtn){
+      el.buyFreezeBtn.disabled = r.freezes >= r.max_freezes;
+      el.buyFreezeBtn.textContent = r.freezes >= r.max_freezes ? 'Maximum' : 'Koupit';
+    }
+    if(el.shopNote){
+      if(r.freezes >= r.max_freezes){
+        el.shopNote.textContent = 'Máš nejvyšší možný počet zmrazení (' + r.max_freezes + ').';
+      } else if(r.gems < r.freeze_price){
+        el.shopNote.textContent = 'Na další zmrazení ti chybí ' + (r.freeze_price - r.gems) + ' drahokamů.';
+      } else {
+        el.shopNote.textContent = 'Zmrazení se spotřebuje automaticky, když vynecháš den.';
+      }
+    }
+  }
+
+  function loadRewards(){
+    if(!hasToken() || !window.TypingAPI) return Promise.resolve(null);
+    return window.TypingAPI.getRewards().then(function(res){
+      if(res && res.rewards){
+        state.rewards = res.rewards;
+        writeRewardsCache();
+        renderRewards();
+      }
+      return state.rewards;
+    }).catch(function(){
+      return state.rewards;
+    });
+  }
+
+  function awardLesson(entry){
+    if(!hasToken() || !window.TypingAPI) return Promise.resolve(null);
+    return window.TypingAPI.awardLessonRewards({
+      unit: entry.unit,
+      lesson: entry.lesson,
+      accuracy: entry.accuracy,
+      wpm: entry.wpm,
+      completed: entry.completed,
+      date: localDateISO()
+    }).then(function(res){
+      if(res && res.rewards){
+        state.rewards = res.rewards;
+        writeRewardsCache();
+        renderRewards();
+      }
+      return res && res.reward ? res.reward : null;
+    }).catch(function(){
+      return null;
+    });
+  }
+
+  function showResultReward(reward){
+    var box = document.getElementById('resultReward');
+    if(!box || !reward) return;
+    var chips = [];
+    if(reward.gems > 0){
+      chips.push('<span class="reward-chip is-gems">+' + reward.gems + ' 💎</span>');
+    } else {
+      chips.push('<span class="reward-chip">💎 odměna už byla udělena</span>');
+    }
+    if(reward.streak_change > 0){
+      chips.push('<span class="reward-chip">🔥 série ' + reward.streak + ' ' + dayLabel(reward.streak) + '</span>');
+    }
+    if(reward.freeze_used > 0){
+      chips.push('<span class="reward-chip">❄ −' + reward.freeze_used + ' zmrazení</span>');
+    }
+    box.innerHTML = chips.join('');
+  }
+
+  function openShop(){
+    if(!el.shopPanel) return;
+    closeSettings();
+    el.shopPanel.hidden = false;
+    renderRewards();
+    document.body.style.overflow = 'hidden';
+    if(el.shopClose) el.shopClose.focus({ preventScroll: true });
+  }
+
+  function closeShop(){
+    if(!el.shopPanel) return;
+    el.shopPanel.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function buyFreeze(){
+    if(!state.rewards || !window.TypingAPI) return;
+    if(state.rewards.freezes >= state.rewards.max_freezes) return;
+    if(!hasToken()){
+      toast('Pro nákup se musíš přihlásit.');
+      return;
+    }
+    if(state.buyingFreeze) return;
+
+    state.buyingFreeze = true;
+    if(el.buyFreezeBtn){
+      el.buyFreezeBtn.disabled = true;
+      el.buyFreezeBtn.textContent = 'Kupuji…';
+    }
+    window.TypingAPI.buyFreeze().then(function(res){
+      if(res && res.rewards){
+        state.rewards = res.rewards;
+        writeRewardsCache();
+        toast('Zmrazení řady koupeno.');
+      }
+    }).catch(function(err){
+      toast((err && err.message) || 'Nákup se nepovedl.');
+    }).then(function(){
+      state.buyingFreeze = false;
+      renderRewards();
+    });
   }
 
   function toast(message){
@@ -568,6 +819,7 @@
 
   function openSettings(){
     if(!el.settingsPanel) return;
+    closeShop();
     el.settingsPanel.hidden = false;
     if(el.settingsBtn) el.settingsBtn.setAttribute('aria-expanded', 'true');
     renderSettings();
@@ -1201,6 +1453,10 @@
           renderOverview();
         }
         renderRunnerHead();
+        if(completed) return awardLesson(entry);
+        return null;
+      }).then(function(reward){
+        if(reward) showResultReward(reward);
       }).catch(function(){
         queuePending(entry);
         toast('Pokrok se nepodařilo uložit na server. Zkusíme to znovu při příštím načtení.');
@@ -1244,6 +1500,7 @@
           '<div><span>Chyby</span><strong>' + errors + '</strong></div>' +
           '<div><span>Čas</span><strong>' + Math.round(elapsedSec) + ' <small>s</small></strong></div>' +
         '</div>' +
+        (completed ? '<div class="result-reward" id="resultReward"></div>' : '') +
         '<div class="result-actions">' +
           '<button type="button" class="btn" id="resultRetry">Zopakovat</button>' +
           '<button type="button" class="' + (completed ? 'btn' : 'ghost-btn') + '" id="resultNext">' + nextLabel + '</button>' +
@@ -1373,6 +1630,7 @@
         return window.TypingAPI.saveProgress(entry).then(function(res){
           savedCount++;
           if(res && res.progress) mergeRows([res.progress]);
+          if(entry.completed) return awardLesson(entry);
         }).catch(function(){
           remaining.push(entry);
         });
@@ -1480,7 +1738,10 @@
       });
     }
     document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && el.settingsPanel && !el.settingsPanel.hidden) closeSettings();
+      if(e.key === 'Escape'){
+        if(el.shopPanel && !el.shopPanel.hidden) closeShop();
+        if(el.settingsPanel && !el.settingsPanel.hidden) closeSettings();
+      }
     });
 
     if(el.themeSwitch){
@@ -1517,6 +1778,19 @@
     }
   }
 
+  function setupShop(){
+    if(el.heroShopBtn) el.heroShopBtn.addEventListener('click', openShop);
+    if(el.shopOpenBtn) el.shopOpenBtn.addEventListener('click', openShop);
+    if(el.shopClose) el.shopClose.addEventListener('click', closeShop);
+    if(el.buyFreezeBtn) el.buyFreezeBtn.addEventListener('click', buyFreeze);
+    if(el.shopPanel){
+      el.shopPanel.addEventListener('click', function(e){
+        var close = e.target.closest ? e.target.closest('[data-shop-close]') : null;
+        if(close) closeShop();
+      });
+    }
+  }
+
   function setupLayoutSwitch(){
     el.layoutSwitch.addEventListener('click', function(e){
       var btn = e.target.closest ? e.target.closest('.layout-btn') : null;
@@ -1548,6 +1822,7 @@
     setupLessonsGrid();
     setupLayoutSwitch();
     setupSettings();
+    setupShop();
     setupHeader();
 
     var backBtn = document.getElementById('backBtn');
@@ -1604,8 +1879,11 @@
     }
 
     readCache();
+    readRewardsCache();
+    renderRewards();
     renderOverview();
     loadProgress();
+    loadRewards();
 
     var params = new URLSearchParams(window.location.search);
     var lessonParam = params.get('lekce') || params.get('unit');

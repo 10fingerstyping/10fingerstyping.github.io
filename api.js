@@ -79,6 +79,18 @@
         method: 'POST',
         body: JSON.stringify(entry)
       });
+    },
+    getRewards: function () {
+      return request('/rewards', { method: 'GET' });
+    },
+    awardLessonRewards: function (entry) {
+      return request('/rewards/lesson', {
+        method: 'POST',
+        body: JSON.stringify(entry)
+      });
+    },
+    buyFreeze: function () {
+      return request('/rewards/buy', { method: 'POST', body: '{}' });
     }
   };
 })();
