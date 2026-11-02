@@ -61,11 +61,27 @@ pokus se do něj sloučí (zůstává nejlepší přesnost a rychlost).
 |--------------|---------|----------------------------------------------|
 | `user_id`    | INTEGER | primární klíč, cizí klíč na `users.id`       |
 | `gems`       | INTEGER | počet drahokamů                              |
+| `xp`         | INTEGER | celkové zkušenosti                           |
 | `streak`     | INTEGER | aktuální denní série                         |
 | `best_streak`| INTEGER | nejdelší dosažená série                      |
 | `freezes`    | INTEGER | počet koupených zmrazení (max. 3)            |
 | `last_active`| TEXT    | poslední den aktivity (`YYYY-MM-DD`)         |
 | `updated_at` | TEXT    | čas poslední změny (UTC, ISO 8601)           |
+
+### Tabulka `daily_quests`
+
+| sloupec          | typ     | popis                                      |
+|------------------|---------|--------------------------------------------|
+| `user_id`        | INTEGER | cizí klíč na `users.id`                    |
+| `day`            | TEXT    | kalendářní den (`YYYY-MM-DD`)              |
+| `lessons`        | INTEGER | počet dokončených lekcí v daném dni        |
+| `xp`             | INTEGER | získané XP v daném dni                     |
+| `lessons_claimed`| INTEGER | `1` = odměna za lekce už byla převzata     |
+| `xp_claimed`     | INTEGER | `1` = odměna za XP už byla převzata        |
+| `updated_at`     | TEXT    | čas poslední změny (UTC, ISO 8601)         |
+
+Dvojice `user_id` + `day` je primární klíč, takže se denní úkoly přirozeně
+resetují každý nový den. Denní cíle jsou dva: dokončit 2 lekce a získat 50 XP.
 
 ### Tabulka `rewarded_lessons`
 
@@ -161,21 +177,33 @@ V nové osnově je `lesson` vždy `1`, protože každý tábor má právě jednu
 
 ### `GET /api/rewards`
 
-Hlavička `Authorization: Bearer <token>`. Vrací stav odměn přihlášeného
-uživatele:
+Hlavička `Authorization: Bearer <token>`. Nepovinný parametr `?date=YYYY-MM-DD`
+určuje místní den pro denní úkoly. Vrací stav odměn a dnešní úkoly:
 
 ```json
 {
   "ok": true,
   "rewards": {
     "gems": 40,
+    "xp": 270,
+    "level": 3,
+    "level_progress": 70,
+    "level_target": 100,
     "streak": 3,
     "best_streak": 5,
     "freezes": 1,
     "last_active": "2026-11-02",
     "gems_per_lesson": 10,
     "freeze_price": 30,
-    "max_freezes": 3
+    "max_freezes": 3,
+    "xp_per_lesson_max": 30
+  },
+  "daily": {
+    "date": "2026-11-02",
+    "quests": [
+      { "id": "lessons", "title": "Dokonči 2 lekce", "target": 2, "progress": 1, "reward": 15, "claimed": false, "done": false },
+      { "id": "xp", "title": "Získej 50 XP", "target": 50, "progress": 30, "reward": 20, "claimed": false, "done": false }
+    ]
   }
 }
 ```
@@ -189,15 +217,28 @@ Hlavička `Authorization: Bearer <token>`. Tělo požadavku:
 ```
 
 Za první dokončení lekce na alespoň 90 % přesnosti přidá 10 drahokamů. Každá
-úspěšně dokončená lekce také posune denní sérii – pokud uživatel vynechal dny
-a má dost zmrazení, automaticky se spotřebují. `date` posílá klient podle
-svého místního kalendáře. Odpověď obsahuje aktuální `rewards` a detail
-`reward` (`gems`, `first_time`, `streak`, `streak_change`, `freeze_used`).
+lekce také přidá XP podle přesnosti – nejvýš 30 XP za 100 %. Pokud je lekce
+dokončená, posune se i denní série; při vynechaných dnech a dostatku zmrazení
+se zmrazení automaticky spotřebují. `date` posílá klient podle svého místního
+kalendáře. Odpověď obsahuje aktuální `rewards`, `daily` a detail `reward`
+(`gems`, `first_time`, `xp`, `streak`, `streak_change`, `freeze_used`).
 
 ### `POST /api/rewards/buy`
 
 Hlavička `Authorization: Bearer <token>`. Kupuje jedno zmrazení řady za 30
 drahokamů. Vrací aktuální `rewards`. Nejvýš lze mít tři zmrazení.
+
+### `POST /api/rewards/quest`
+
+Hlavička `Authorization: Bearer <token>`. Tělo požadavku:
+
+```json
+{ "id": "lessons", "date": "2026-11-02" }
+```
+
+Převezme odměnu za splněný denní úkol (`lessons` = 2 lekce, `xp` = 50 XP).
+Vrací aktuální `rewards`, `daily` a informaci, zda byla odměna právě
+připsána. Splněný úkol nelze převzít dvakrát.
 
 ### `GET /api/health`
 

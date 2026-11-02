@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -126,6 +126,10 @@
         <strong id="shopGems">0</strong>
       </div>
       <div class="shop-balance-item">
+        <span class="reward-label">XP</span>
+        <strong id="shopXp">0</strong>
+      </div>
+      <div class="shop-balance-item">
         <span class="reward-label">Zmrazení</span>
         <strong id="shopFreezes">0 / 3</strong>
       </div>
@@ -152,6 +156,7 @@
     <div class="shop-earn">
       <h3>Jak získat drahokamy</h3>
       <p>Za každou lekci dokončenou alespoň na 90 % přesnosti dostaneš <strong>10 drahokamů</strong>. Opakování už drahokamy nepřináší, ale počítá se do denního streaku.</p>
+      <p>Každá lekce také dává <strong>XP podle přesnosti</strong> – až 30 XP za stoprocentní opis. Denní úkoly pak odměňují drahokamy.</p>
       <p>Streak roste za každý den, kdy dokončíš nebo zopakuješ lekci. Jeden vynechaný den ti zachrání jedno zmrazení.</p>
     </div>
   </div>
@@ -189,6 +194,14 @@
         </div>
       </div>
       <div class="reward-stat">
+        <span class="reward-icon" aria-hidden="true">⭐</span>
+        <div class="reward-copy">
+          <span class="reward-label">XP a úroveň</span>
+          <strong id="rewardXp">0 XP</strong>
+          <span class="reward-sub" id="rewardLevel">Úroveň 1 · 0 / 100</span>
+        </div>
+      </div>
+      <div class="reward-stat">
         <span class="reward-icon" aria-hidden="true">❄</span>
         <div class="reward-copy">
           <span class="reward-label">Zmrazení řady</span>
@@ -198,6 +211,19 @@
       </div>
       <button type="button" class="btn shop-open-btn" id="shopOpenBtn">Obchod →</button>
     </div>
+
+    <section class="daily-panel" id="dailyPanel" aria-labelledby="dailyTitle">
+      <div class="daily-head">
+        <div>
+          <span class="reward-label">Denní úkoly</span>
+          <h2 id="dailyTitle">Dnešní výzvy</h2>
+        </div>
+        <span class="daily-date" id="dailyDate"></span>
+      </div>
+      <div class="daily-quests" id="dailyQuests">
+        <p class="daily-empty">Načítám denní úkoly…</p>
+      </div>
+    </section>
 
     <div class="lesson-dashboard">
       <div class="dash-card">
@@ -335,6 +361,7 @@
     user: readUser(),
     progress: {},
     rewards: null,
+    daily: null,
     lesson: null,
     session: null,
     step: 'overview',
@@ -366,13 +393,18 @@
     buyFreezeBtn: document.getElementById('buyFreezeBtn'),
     shopNote: document.getElementById('shopNote'),
     shopGems: document.getElementById('shopGems'),
+    shopXp: document.getElementById('shopXp'),
     shopFreezes: document.getElementById('shopFreezes'),
     shopStreak: document.getElementById('shopStreak'),
     shopPrice: document.getElementById('shopPrice'),
     rewardStreak: document.getElementById('rewardStreak'),
     rewardBest: document.getElementById('rewardBest'),
     rewardGems: document.getElementById('rewardGems'),
+    rewardXp: document.getElementById('rewardXp'),
+    rewardLevel: document.getElementById('rewardLevel'),
     rewardFreezes: document.getElementById('rewardFreezes'),
+    dailyDate: document.getElementById('dailyDate'),
+    dailyQuests: document.getElementById('dailyQuests'),
     themeSwitch: document.getElementById('themeSwitch'),
     textSizeSwitch: document.getElementById('textSizeSwitch'),
     accentSwitch: document.getElementById('accentSwitch'),
@@ -479,13 +511,23 @@
   function renderRewards(){
     var r = state.rewards;
     if(!r) return;
+    var xp = Number(r.xp) || 0;
+    var level = Number(r.level) || (Math.floor(xp / 100) + 1);
+    var levelProgress = Number(r.level_progress);
+    if(isNaN(levelProgress)) levelProgress = xp % 100;
+    var levelTarget = Number(r.level_target) || 100;
 
     if(el.rewardStreak) el.rewardStreak.textContent = r.streak + ' ' + dayLabel(r.streak);
     if(el.rewardBest) el.rewardBest.textContent = 'Nejlepší ' + r.best_streak;
     if(el.rewardGems) el.rewardGems.textContent = r.gems;
+    if(el.rewardXp) el.rewardXp.textContent = xp + ' XP';
+    if(el.rewardLevel){
+      el.rewardLevel.textContent = 'Úroveň ' + level + ' · ' + levelProgress + ' / ' + levelTarget;
+    }
     if(el.rewardFreezes) el.rewardFreezes.textContent = r.freezes + ' / ' + r.max_freezes;
 
     if(el.shopGems) el.shopGems.textContent = r.gems;
+    if(el.shopXp) el.shopXp.textContent = xp;
     if(el.shopFreezes) el.shopFreezes.textContent = r.freezes + ' / ' + r.max_freezes;
     if(el.shopStreak) el.shopStreak.textContent = r.streak + ' ' + dayLabel(r.streak);
     if(el.shopPrice) el.shopPrice.textContent = r.freeze_price;
@@ -507,15 +549,87 @@
 
   function loadRewards(){
     if(!hasToken() || !window.TypingAPI) return Promise.resolve(null);
-    return window.TypingAPI.getRewards().then(function(res){
+    return window.TypingAPI.getRewards(localDateISO()).then(function(res){
       if(res && res.rewards){
         state.rewards = res.rewards;
         writeRewardsCache();
         renderRewards();
       }
+      if(res && res.daily){
+        state.daily = res.daily;
+        renderDaily();
+      }
       return state.rewards;
     }).catch(function(){
       return state.rewards;
+    });
+  }
+
+  function renderDaily(){
+    if(!el.dailyQuests) return;
+    var daily = state.daily;
+    if(!daily || !daily.quests || !daily.quests.length){
+      el.dailyQuests.innerHTML = '<p class="daily-empty">Denní úkoly se teď nepodařilo načíst.</p>';
+      return;
+    }
+
+    if(el.dailyDate){
+      var parts = String(daily.date || '').split('-');
+      el.dailyDate.textContent = parts.length === 3 ? parts[2] + '. ' + parts[1] + '. ' + parts[0] : '';
+    }
+
+    el.dailyQuests.innerHTML = daily.quests.map(function(quest){
+      var target = Math.max(1, Number(quest.target) || 1);
+      var progress = Math.min(Number(quest.progress) || 0, target);
+      var percent = Math.round(progress / target * 100);
+      var done = !!quest.done;
+      var claimed = !!quest.claimed;
+      var icon = quest.id === 'xp' ? '⭐' : '📘';
+      var button = '';
+      if(claimed){
+        button = '<button type="button" class="daily-claim is-claimed" disabled>Převzato ✓</button>';
+      } else if(done){
+        button = '<button type="button" class="daily-claim" data-quest-id="' + escapeHtml(quest.id) + '">Převzít +' + quest.reward + ' 💎</button>';
+      } else {
+        button = '<button type="button" class="daily-claim" disabled>' + progress + ' / ' + target + '</button>';
+      }
+      return '<div class="daily-quest' + (done ? ' is-done' : '') + '">' +
+        '<span class="daily-quest-icon" aria-hidden="true">' + icon + '</span>' +
+        '<div class="daily-quest-copy">' +
+          '<div class="daily-quest-top"><strong>' + escapeHtml(quest.title) + '</strong>' +
+          '<span class="daily-reward">+' + quest.reward + ' 💎</span></div>' +
+          '<div class="daily-bar"><span style="width:' + percent + '%"></span></div>' +
+          '<span class="daily-progress">' + progress + ' / ' + target + (quest.id === 'xp' ? ' XP' : '') + '</span>' +
+        '</div>' +
+        button +
+      '</div>';
+    }).join('');
+  }
+
+  function claimQuest(questId){
+    if(!hasToken() || !window.TypingAPI || !questId) return;
+    if(state.claimingQuest) return;
+    state.claimingQuest = true;
+    toast('Přebírám odměnu…');
+    window.TypingAPI.claimQuest(questId, localDateISO()).then(function(res){
+      if(res && res.rewards){
+        state.rewards = res.rewards;
+        writeRewardsCache();
+        renderRewards();
+      }
+      if(res && res.daily){
+        state.daily = res.daily;
+        renderDaily();
+      }
+      if(res && res.claimed){
+        toast('Odměna převzata: +' + res.gems + ' 💎');
+      } else {
+        toast('Odměna už byla převzata.');
+      }
+    }).catch(function(err){
+      toast((err && err.message) || 'Odměnu se nepodařilo převzít.');
+    }).then(function(){
+      state.claimingQuest = false;
     });
   }
 
@@ -534,6 +648,10 @@
         writeRewardsCache();
         renderRewards();
       }
+      if(res && res.daily){
+        state.daily = res.daily;
+        renderDaily();
+      }
       return res && res.reward ? res.reward : null;
     }).catch(function(){
       return null;
@@ -544,10 +662,11 @@
     var box = document.getElementById('resultReward');
     if(!box || !reward) return;
     var chips = [];
+    if(reward.xp > 0){
+      chips.push('<span class="reward-chip is-xp">+' + reward.xp + ' XP</span>');
+    }
     if(reward.gems > 0){
       chips.push('<span class="reward-chip is-gems">+' + reward.gems + ' 💎</span>');
-    } else {
-      chips.push('<span class="reward-chip">💎 odměna už byla udělena</span>');
     }
     if(reward.streak_change > 0){
       chips.push('<span class="reward-chip">🔥 série ' + reward.streak + ' ' + dayLabel(reward.streak) + '</span>');
@@ -1453,8 +1572,7 @@
           renderOverview();
         }
         renderRunnerHead();
-        if(completed) return awardLesson(entry);
-        return null;
+        return awardLesson(entry);
       }).then(function(reward){
         if(reward) showResultReward(reward);
       }).catch(function(){
@@ -1500,7 +1618,7 @@
           '<div><span>Chyby</span><strong>' + errors + '</strong></div>' +
           '<div><span>Čas</span><strong>' + Math.round(elapsedSec) + ' <small>s</small></strong></div>' +
         '</div>' +
-        (completed ? '<div class="result-reward" id="resultReward"></div>' : '') +
+        '<div class="result-reward" id="resultReward"></div>' +
         '<div class="result-actions">' +
           '<button type="button" class="btn" id="resultRetry">Zopakovat</button>' +
           '<button type="button" class="' + (completed ? 'btn' : 'ghost-btn') + '" id="resultNext">' + nextLabel + '</button>' +
@@ -1791,6 +1909,15 @@
     }
   }
 
+  function setupDaily(){
+    if(!el.dailyQuests) return;
+    el.dailyQuests.addEventListener('click', function(e){
+      var btn = e.target.closest ? e.target.closest('[data-quest-id]') : null;
+      if(!btn) return;
+      claimQuest(btn.getAttribute('data-quest-id'));
+    });
+  }
+
   function setupLayoutSwitch(){
     el.layoutSwitch.addEventListener('click', function(e){
       var btn = e.target.closest ? e.target.closest('.layout-btn') : null;
@@ -1823,6 +1950,7 @@
     setupLayoutSwitch();
     setupSettings();
     setupShop();
+    setupDaily();
     setupHeader();
 
     var backBtn = document.getElementById('backBtn');

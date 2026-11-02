@@ -27,6 +27,27 @@ GEMS_PER_LESSON = 10
 FREEZE_PRICE = 30
 MAX_FREEZES = 3
 MAX_ACTIVE_DATE_AHEAD_DAYS = 1  # tolerance kvůli časovým pásmům
+# XP: každá lekce dá XP podle přesnosti. Denní úkoly se plní za den.
+XP_PER_LESSON_MAX = 30
+XP_PER_LEVEL = 100
+DAILY_QUEST_LESSONS = 2
+DAILY_QUEST_XP = 50
+DAILY_QUEST_LESSONS_REWARD = 15
+DAILY_QUEST_XP_REWARD = 20
+DAILY_QUEST_CLAIMS = {
+    "lessons": {
+        "progress": "lessons",
+        "target": DAILY_QUEST_LESSONS,
+        "claimed": "lessons_claimed",
+        "reward": DAILY_QUEST_LESSONS_REWARD,
+    },
+    "xp": {
+        "progress": "xp",
+        "target": DAILY_QUEST_XP,
+        "claimed": "xp_claimed",
+        "reward": DAILY_QUEST_XP_REWARD,
+    },
+}
 
 
 def get_db():
@@ -92,11 +113,30 @@ def init_db():
         CREATE TABLE IF NOT EXISTS rewards (
             user_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
             gems         INTEGER NOT NULL DEFAULT 0,
+            xp           INTEGER NOT NULL DEFAULT 0,
             streak       INTEGER NOT NULL DEFAULT 0,
             best_streak  INTEGER NOT NULL DEFAULT 0,
             freezes      INTEGER NOT NULL DEFAULT 0,
             last_active  TEXT,
             updated_at   TEXT    NOT NULL
+        )
+        """
+    )
+    # Starší databáze tabulku rewards už má, jen bez sloupce xp.
+    reward_columns = {row[1] for row in db.execute("PRAGMA table_info(rewards)")}
+    if "xp" not in reward_columns:
+        db.execute("ALTER TABLE rewards ADD COLUMN xp INTEGER NOT NULL DEFAULT 0")
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS daily_quests (
+            user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            day              TEXT    NOT NULL,
+            lessons          INTEGER NOT NULL DEFAULT 0,
+            xp               INTEGER NOT NULL DEFAULT 0,
+            lessons_claimed  INTEGER NOT NULL DEFAULT 0,
+            xp_claimed       INTEGER NOT NULL DEFAULT 0,
+            updated_at       TEXT    NOT NULL,
+            PRIMARY KEY (user_id, day)
         )
         """
     )
@@ -222,8 +262,13 @@ def ensure_rewards(db, user_id):
 
 def rewards_public(db, user_id):
     row = ensure_rewards(db, user_id)
+    xp = int(row["xp"] or 0)
     return {
         "gems": row["gems"],
+        "xp": xp,
+        "level": xp // XP_PER_LEVEL + 1,
+        "level_progress": xp % XP_PER_LEVEL,
+        "level_target": XP_PER_LEVEL,
         "streak": row["streak"],
         "best_streak": row["best_streak"],
         "freezes": row["freezes"],
@@ -231,6 +276,55 @@ def rewards_public(db, user_id):
         "gems_per_lesson": GEMS_PER_LESSON,
         "freeze_price": FREEZE_PRICE,
         "max_freezes": MAX_FREEZES,
+        "xp_per_lesson_max": XP_PER_LESSON_MAX,
+    }
+
+
+def lesson_xp(accuracy):
+    """XP za lekci roste s přesností, nejvýš XP_PER_LESSON_MAX."""
+    accuracy = max(0.0, min(100.0, float(accuracy or 0)))
+    return int(XP_PER_LESSON_MAX * accuracy / 100.0 + 0.5)
+
+
+def ensure_daily(db, user_id, day):
+    db.execute(
+        "INSERT OR IGNORE INTO daily_quests "
+        "(user_id, day, lessons, xp, lessons_claimed, xp_claimed, updated_at) "
+        "VALUES (?, ?, 0, 0, 0, 0, ?)",
+        (user_id, day.isoformat(), now_iso()),
+    )
+    return db.execute(
+        "SELECT * FROM daily_quests WHERE user_id = ? AND day = ?",
+        (user_id, day.isoformat()),
+    ).fetchone()
+
+
+def daily_public(db, user_id, day):
+    row = ensure_daily(db, user_id, day)
+    lessons_progress = min(int(row["lessons"] or 0), DAILY_QUEST_LESSONS)
+    xp_progress = min(int(row["xp"] or 0), DAILY_QUEST_XP)
+    return {
+        "date": day.isoformat(),
+        "quests": [
+            {
+                "id": "lessons",
+                "title": f"Dokonči {DAILY_QUEST_LESSONS} lekce",
+                "target": DAILY_QUEST_LESSONS,
+                "progress": lessons_progress,
+                "reward": DAILY_QUEST_LESSONS_REWARD,
+                "claimed": bool(row["lessons_claimed"]),
+                "done": lessons_progress >= DAILY_QUEST_LESSONS,
+            },
+            {
+                "id": "xp",
+                "title": f"Získej {DAILY_QUEST_XP} XP",
+                "target": DAILY_QUEST_XP,
+                "progress": xp_progress,
+                "reward": DAILY_QUEST_XP_REWARD,
+                "claimed": bool(row["xp_claimed"]),
+                "done": xp_progress >= DAILY_QUEST_XP,
+            },
+        ],
     }
 
 
@@ -484,7 +578,11 @@ def get_rewards():
         return auth_error
 
     db = get_db()
-    return jsonify({"ok": True, "rewards": rewards_public(db, user["id"])})
+    day = parse_active_date(request.args.get("date"))
+    rewards = rewards_public(db, user["id"])
+    daily = daily_public(db, user["id"], day)
+    db.commit()
+    return jsonify({"ok": True, "rewards": rewards, "daily": daily})
 
 
 @app.post("/api/rewards/lesson")
@@ -514,6 +612,7 @@ def award_lesson_rewards():
 
     db = get_db()
     ensure_rewards(db, user["id"])
+    ensure_daily(db, user["id"], active_date)
 
     gems_awarded = 0
     first_time = False
@@ -531,17 +630,41 @@ def award_lesson_rewards():
                 (gems_awarded, now_iso(), user["id"]),
             )
 
+    xp_awarded = lesson_xp(accuracy)
+    now = now_iso()
+    db.execute(
+        "UPDATE rewards SET xp = xp + ?, updated_at = ? WHERE user_id = ?",
+        (xp_awarded, now, user["id"]),
+    )
+    db.execute(
+        "UPDATE daily_quests SET lessons = lessons + ?, xp = xp + ?, updated_at = ? "
+        "WHERE user_id = ? AND day = ?",
+        (1 if completed else 0, xp_awarded, now, user["id"], active_date.isoformat()),
+    )
+
     row = db.execute("SELECT * FROM rewards WHERE user_id = ?", (user["id"],)).fetchone()
-    streak = update_streak(db, row, active_date)
+    if completed:
+        streak = update_streak(db, row, active_date)
+    else:
+        streak = {
+            "streak": row["streak"],
+            "before": row["streak"],
+            "change": 0,
+            "freeze_used": 0,
+            "best": row["best_streak"],
+        }
     db.commit()
 
     return jsonify(
         {
             "ok": True,
             "rewards": rewards_public(db, user["id"]),
+            "daily": daily_public(db, user["id"], active_date),
             "reward": {
                 "gems": gems_awarded,
                 "first_time": first_time,
+                "xp": xp_awarded,
+                "completed": completed,
                 "streak": streak["streak"],
                 "streak_before": streak["before"],
                 "streak_change": streak["change"],
@@ -573,6 +696,58 @@ def buy_freeze():
     )
     db.commit()
     return jsonify({"ok": True, "rewards": rewards_public(db, user["id"])})
+
+
+@app.post("/api/rewards/quest")
+def claim_daily_quest():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    quest_id = str(data.get("id") or "").strip().lower()
+    quest = DAILY_QUEST_CLAIMS.get(quest_id)
+    if quest is None:
+        return error("Neznámý denní úkol.")
+
+    active_date = parse_active_date(data.get("date"))
+    db = get_db()
+    ensure_rewards(db, user["id"])
+    row = ensure_daily(db, user["id"], active_date)
+
+    progress = int(row[quest["progress"]] or 0)
+    if progress < int(quest["target"]):
+        return error("Tento úkol ještě není splněný.")
+    if row[quest["claimed"]]:
+        return jsonify(
+            {
+                "ok": True,
+                "rewards": rewards_public(db, user["id"]),
+                "daily": daily_public(db, user["id"], active_date),
+                "claimed": False,
+            }
+        )
+
+    now = now_iso()
+    db.execute(
+        f"UPDATE daily_quests SET {quest['claimed']} = 1, updated_at = ? "
+        "WHERE user_id = ? AND day = ?",
+        (now, user["id"], active_date.isoformat()),
+    )
+    db.execute(
+        "UPDATE rewards SET gems = gems + ?, updated_at = ? WHERE user_id = ?",
+        (quest["reward"], now, user["id"]),
+    )
+    db.commit()
+    return jsonify(
+        {
+            "ok": True,
+            "rewards": rewards_public(db, user["id"]),
+            "daily": daily_public(db, user["id"], active_date),
+            "claimed": True,
+            "gems": quest["reward"],
+        }
+    )
 
 
 if __name__ == "__main__":

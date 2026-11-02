@@ -80,8 +80,10 @@
         body: JSON.stringify(entry)
       });
     },
-    getRewards: function () {
-      return request('/rewards', { method: 'GET' });
+    getRewards: function (date) {
+      var path = '/rewards';
+      if (date) path += '?date=' + encodeURIComponent(date);
+      return request(path, { method: 'GET' });
     },
     awardLessonRewards: function (entry) {
       return request('/rewards/lesson', {
@@ -91,6 +93,12 @@
     },
     buyFreeze: function () {
       return request('/rewards/buy', { method: 'POST', body: '{}' });
+    },
+    claimQuest: function (id, date) {
+      return request('/rewards/quest', {
+        method: 'POST',
+        body: JSON.stringify({ id: id, date: date })
+      });
     }
   };
 })();

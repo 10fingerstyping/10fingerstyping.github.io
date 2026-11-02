@@ -338,7 +338,7 @@ footer{
 /* --- odměny a obchod ----------------------------------------------------- */
 
 .rewards-bar{
-  display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;
+  display:grid;grid-template-columns:repeat(4,1fr) auto;gap:12px;
   align-items:stretch;margin-bottom:22px;
 }
 .reward-stat{
@@ -358,7 +358,7 @@ footer{
 .shop-open-btn{align-self:center;justify-self:end;padding:12px 24px;font-size:15px;white-space:nowrap}
 
 .shop-card{width:min(460px,100%)}
-.shop-balance{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.shop-balance{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
 .shop-balance-item{background:var(--info);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
 .shop-balance-item strong{display:block;font-size:20px;line-height:1.2;letter-spacing:-.3px}
 .shop-item{
@@ -383,6 +383,43 @@ footer{
 .shop-earn h3{font-size:15px;margin-bottom:6px}
 .shop-earn p{font-size:13px;line-height:1.55;color:var(--muted);margin-bottom:8px}
 .shop-earn p:last-child{margin-bottom:0}
+
+/* --- denní úkoly --------------------------------------------------------- */
+
+.daily-panel{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:22px;
+}
+.daily-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.daily-head h2{font-size:21px;letter-spacing:-.25px;margin-top:2px}
+.daily-date{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;padding-top:4px}
+.daily-quests{display:grid;gap:10px}
+.daily-empty{font-size:13px;color:var(--muted);margin:0}
+.daily-quest{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 13px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--info);
+}
+.daily-quest.is-done{border-color:var(--accent)}
+.daily-quest-icon{
+  width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;
+  font-size:18px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+}
+.daily-quest-copy{flex:1;min-width:0}
+.daily-quest-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+.daily-quest-top strong{font-size:14px}
+.daily-reward{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.daily-bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+.daily-bar span{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .25s ease}
+.daily-progress{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+.daily-claim{
+  flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;
+  padding:8px 12px;border:1px solid var(--accent);border-radius:var(--radius);
+  background:var(--accent);color:var(--btn-ink);cursor:pointer;transition:.2s;white-space:nowrap;
+}
+.daily-claim:hover:not(:disabled){filter:brightness(1.06)}
+.daily-claim:disabled{opacity:.55;cursor:default}
+.daily-claim.is-claimed{background:transparent;border-color:var(--line);color:var(--muted)}
 
 
 .settings-panel{position:fixed;inset:0;z-index:300;display:flex;justify-content:flex-end}
@@ -672,6 +709,7 @@ footer{
   background:var(--info);font-size:12.5px;font-weight:600;
 }
 .reward-chip.is-gems{border-color:var(--accent);color:var(--accent)}
+.reward-chip.is-xp{border-color:#d4a017;color:#b8860b}
 .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .result-actions .btn{padding:12px 24px;font-size:15px}
 
@@ -712,6 +750,8 @@ footer{
   .dash-card strong{font-size:20px}
   .rewards-bar{grid-template-columns:1fr}
   .shop-balance{grid-template-columns:1fr}
+  .daily-quest{flex-wrap:wrap}
+  .daily-claim{width:100%}
   .keyboard{--kb-size:27px}
   .kb-row{gap:3px}
   .kb-key{font-size:10px}
