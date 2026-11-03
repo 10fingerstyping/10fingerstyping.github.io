@@ -844,7 +844,46 @@
     return genericSymbolLines(ctx, rnd, main);
   }
 
-  function lessonLines(bundle) {
+  var EXERCISES_PER_LESSON = 20;
+
+  function extraLessonLines(ctx, rnd, kind, used) {
+    var extras = [];
+    var mainSymbol = kind === 'symbols' && ctx.focusSymbols.length ? ctx.focusSymbols[0] : null;
+    var focusPool = ctx.focus.length ? ctx.focus : ctx.letters;
+    var guard = 0;
+
+    function add(line) {
+      if (line && used.indexOf(line) === -1 && extras.indexOf(line) === -1) extras.push(line);
+    }
+
+    while (extras.length < 10 && guard++ < 80) {
+      var minLen = 26 + (guard % 4) * 4;
+      var maxLen = minLen + 10 + (guard % 3) * 4;
+
+      if (kind === 'symbols') {
+        if (mainSymbol === ',') {
+          add(commaWordLine(ctx, rnd, minLen, maxLen));
+        } else if (mainSymbol === '.') {
+          add(sentenceLine(ctx, rnd, minLen, maxLen));
+        } else if (mainSymbol === '´') {
+          add(deadKeyWordLine(ctx, rnd, pickVowels(ctx.letters), minLen, maxLen));
+        } else if (mainSymbol === '?') {
+          add(guard % 2 ? questionLine(ctx, rnd, minLen, maxLen) : quotedLine(ctx, rnd, minLen, maxLen));
+        } else {
+          add(symbolWordLine(ctx, rnd, minLen, maxLen, mainSymbol));
+        }
+      } else if (guard % 3 === 0) {
+        add(nl(ctx, randomGroups(ctx.letters, focusPool, rnd, minLen, maxLen, 3 + (guard % 2))));
+      } else {
+        var line = letterWordLines(ctx, rnd, 1, minLen, maxLen)[0];
+        if (kind === 'shift') line = forceCaps(line);
+        add(line);
+      }
+    }
+    return extras;
+  }
+
+  function lessonLines(bundle, ctx, rnd, kind) {
     var lines = [];
 
     function take(list, count) {
@@ -854,10 +893,16 @@
       }
     }
 
-    take(bundle.intro, 3);
-    take(bundle.practice, 3);
-    take(bundle.words, 2);
-    take(bundle.fluency, 2);
+    // Každá lekce má 20 cvičení: seznámení, procvičení, slova i plynulost.
+    take(bundle.intro, 4);
+    take(bundle.practice, 4);
+    take(bundle.words, 4);
+    take(bundle.fluency, 5);
+
+    var extras = extraLessonLines(ctx, rnd, kind, lines);
+    for (var e = 0; e < extras.length && lines.length < EXERCISES_PER_LESSON; e++) {
+      lines.push(extras[e]);
+    }
 
     if (!lines.length) {
       var fallback = bundle.intro && bundle.intro.length
@@ -865,7 +910,7 @@
         : (bundle.practice && bundle.practice[0]) || '';
       if (fallback) lines.push(fallback);
     }
-    return lines;
+    return lines.slice(0, EXERCISES_PER_LESSON);
   }
 
   function lessonTitle(ctx) {
@@ -903,7 +948,7 @@
         index: 0,
         title: lessonTitle(ctx),
         subtitle: lessonSubtitle(ctx),
-        lines: lessonLines(bundle)
+        lines: lessonLines(bundle, ctx, rnd, ctx.kind)
       }
     ];
   }

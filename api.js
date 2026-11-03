@@ -71,6 +71,15 @@
     logout: function () {
       return request('/logout', { method: 'POST', body: '{}' });
     },
+    getProfile: function () {
+      return request('/profile', { method: 'GET' });
+    },
+    updateProfile: function (data) {
+      return request('/profile', {
+        method: 'POST',
+        body: JSON.stringify(data || {})
+      });
+    },
     getProgress: function () {
       return request('/progress', { method: 'GET' });
     },

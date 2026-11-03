@@ -421,6 +421,95 @@ footer{
 .daily-claim:disabled{opacity:.55;cursor:default}
 .daily-claim.is-claimed{background:transparent;border-color:var(--line);color:var(--muted)}
 
+/* --- úspěchy a odznaky --------------------------------------------------- */
+
+.awards-panel{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:22px;
+}
+.awards-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.awards-head h2{font-size:21px;letter-spacing:-.25px;margin-top:2px}
+.awards-count{
+  font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;
+  padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--info);
+}
+.awards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.award-card{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 13px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--info);opacity:.82;transition:border-color .2s,opacity .2s;
+}
+.award-card.is-unlocked{border-color:var(--accent);opacity:1}
+.award-icon{
+  width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;
+  font-size:19px;line-height:1;border-radius:10px;
+  background:var(--card);border:1px solid var(--line);
+}
+.award-card.is-unlocked .award-icon{border-color:var(--accent)}
+.award-copy{flex:1;min-width:0}
+.award-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.award-top strong{font-size:13.5px;line-height:1.25}
+.award-state{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.award-copy p{font-size:12px;line-height:1.45;color:var(--muted);margin:3px 0 7px}
+.award-bar{height:5px;border-radius:6px;background:var(--line);overflow:hidden}
+.award-bar span{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .25s ease}
+.award-progress{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
+
+/* --- profil -------------------------------------------------------------- */
+
+.profile-shell{padding:44px 0 64px;max-width:1120px;margin:0 auto}
+.profile-hero{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:26px;
+}
+.profile-avatar{
+  width:76px;height:76px;flex:0 0 76px;display:grid;place-items:center;
+  border-radius:50%;background:var(--accent);color:var(--btn-ink);
+  font-size:31px;font-weight:800;line-height:1;border:1px solid var(--accent-dark);
+}
+.profile-hero-copy{flex:1;min-width:200px}
+.profile-hero h1{font-size:34px;line-height:1.1;letter-spacing:-.5px;margin:4px 0 4px}
+.profile-hero .eyebrow{margin-bottom:2px}
+.profile-email{color:var(--muted);font-size:15px}
+.profile-since{color:var(--muted);font-size:12.5px;margin-top:2px}
+.profile-back{align-self:flex-start;text-decoration:none}
+.profile-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px;align-items:start}
+.profile-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 22px 24px;
+}
+.profile-side{display:grid;gap:18px}
+.profile-card-head{margin-bottom:18px}
+.profile-card-head h2{font-size:21px;letter-spacing:-.25px;margin-bottom:4px}
+.profile-card-head p{font-size:13px;color:var(--muted);line-height:1.5}
+.profile-card-head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.profile-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.profile-divider{border-top:1px solid var(--line);margin:20px 0 18px;padding-top:18px}
+.profile-divider h3{font-size:15px;margin-bottom:3px}
+.profile-divider p{font-size:12.5px;color:var(--muted);line-height:1.5}
+.profile-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px}
+.profile-actions .btn{padding:12px 26px;font-size:15px}
+.profile-actions .btn:disabled{opacity:.6;cursor:wait}
+.form-message{font-size:13px;line-height:1.4;color:var(--muted)}
+.form-message.is-success{color:var(--accent);font-weight:600}
+.form-message.is-error{color:#c0392b;font-weight:600}
+html[data-theme="dark"] .form-message.is-error{color:#f08b7e}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.profile-stats .dash-card{padding:12px 14px}
+.profile-stats .dash-card strong{font-size:20px}
+.profile-level{margin-top:10px}
+.profile-level .dash-bar{height:7px}
+.profile-side .awards-grid{grid-template-columns:1fr}
+
+@media(max-width:900px){
+  .profile-layout{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .profile-shell{padding-top:28px}
+  .profile-hero h1{font-size:27px}
+  .profile-form-grid{grid-template-columns:1fr}
+  .profile-card{padding:18px}
+}
+
 
 .settings-panel{position:fixed;inset:0;z-index:300;display:flex;justify-content:flex-end}
 .settings-panel[hidden]{display:none}
@@ -444,6 +533,13 @@ footer{
 .settings-label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 .settings-note{display:block;font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
 .settings-hint{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin:0}
+.settings-profile-link{
+  display:block;text-align:center;text-decoration:none;
+  font-size:14px;font-weight:600;padding:11px 16px;
+  border:1px solid var(--accent);border-radius:var(--radius);
+  background:var(--accent);color:var(--btn-ink);transition:.2s;
+}
+.settings-profile-link:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
 .settings-group .segmented{display:flex;width:100%}
 .settings-group .segmented>button{
   flex:1;font:inherit;font-size:13px;font-weight:600;
@@ -710,6 +806,7 @@ footer{
 }
 .reward-chip.is-gems{border-color:var(--accent);color:var(--accent)}
 .reward-chip.is-xp{border-color:#d4a017;color:#b8860b}
+.reward-chip.is-award{border-color:var(--accent);background:var(--accent);color:var(--btn-ink)}
 .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .result-actions .btn{padding:12px 24px;font-size:15px}
 
@@ -752,6 +849,8 @@ footer{
   .shop-balance{grid-template-columns:1fr}
   .daily-quest{flex-wrap:wrap}
   .daily-claim{width:100%}
+  .awards-grid{grid-template-columns:1fr}
+  .profile-stats{grid-template-columns:1fr}
   .keyboard{--kb-size:27px}
   .kb-row{gap:3px}
   .kb-key{font-size:10px}

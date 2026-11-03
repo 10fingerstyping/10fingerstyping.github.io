@@ -20,6 +20,10 @@ které ji mohou využívat při výuce.
 - **XP a denní úkoly** – každá lekce dává XP podle přesnosti a každý den
   čekají dvě výzvy: dokončit 2 lekce a získat 50 XP. Za jejich splnění získáte
   další drahokamy.
+- **Úspěchy a odznaky** – za pokrok v lekcích, přesnost, rychlost, sérii i XP
+  se odemykají odznaky, které se zobrazují u lekcí i v profilu.
+- **Nastavení profilu** – v účtu lze změnit uživatelské jméno, e-mail i heslo.
+  Údaje se ukládají na serveru, takže platí na všech zařízeních.
 - **Dvě verze** – samostatná verze pro běžné uživatele a verze pro školy, kde
   učitelé zadávají lekce a testy celé třídě a sledují pokrok žáků.
 
@@ -27,15 +31,17 @@ které ji mohou využívat při výuce.
 
 Běží statická prezentace s funkčním přepínáním jazyka, motivu a formuláři pro
 přihlášení a registraci. Součástí je výuka psaní po jednotlivých písmenech –
-každá jednotka má úvodní lekci s vysvětlením klávesy a prstu a další
-procvičování, která navazují na předchozí písmena. Pokrok, denní série,
-drahokamy, XP, denní úkoly a zakoupená zmrazení se ukládají k účtu uživatele
-na API serveru.
+každá jednotka má jednu lekci s vysvětlením klávesy a prstu a s dvaceti
+cvičeními, která navazují na předchozí písmena. Pokrok, denní série,
+drahokamy, XP, denní úkoly, úspěchy a zakoupená zmrazení se ukládají k účtu
+uživatele na API serveru. Profil (jméno, e-mail, heslo) se spravuje na
+stránce `profil.html`.
 
 ## Lekce
 
 - 26 jednotek, každá pro jedno písmeno (od domovské řady dál).
-- 4 lekce v každé jednotce: seznámení, procvičení, slova, plynulost.
+- 46 lekcí celkem, každá má 20 cvičení: seznámení, procvičení, slova
+  a plynulost.
 - První lekce jednotky zobrazí klávesu na klávesnici, příslušný prst a základní
   pravidla.
 - Cvičení vždy obsahují i všechna předchozí písmena.

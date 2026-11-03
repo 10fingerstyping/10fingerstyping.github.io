@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=21">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -49,6 +49,7 @@
         </button>
         <div id="userDropdown" class="user-dropdown">
           <button id="goLessonsBtn" type="button">Moje lekce</button>
+          <button id="profileBtn" type="button">Nastavení profilu</button>
           <button id="logoutBtn" type="button">Odhlásit se</button>
         </div>
       </div>
@@ -105,7 +106,13 @@
       </div>
     </div>
 
-    <p class="settings-hint">Nastavení se ukládá v tomto prohlížeči.</p>
+    <div class="settings-group">
+      <span class="settings-label">Profil a účet</span>
+      <a class="settings-profile-link" href="profil.html">Nastavení profilu →</a>
+      <span class="settings-note">Změna uživatelského jména, e-mailu a hesla. Ukládá se na serveru.</span>
+    </div>
+
+    <p class="settings-hint">Nastavení vzhledu se ukládá v tomto prohlížeči.</p>
   </div>
 </div>
 
@@ -222,6 +229,19 @@
       </div>
       <div class="daily-quests" id="dailyQuests">
         <p class="daily-empty">Načítám denní úkoly…</p>
+      </div>
+    </section>
+
+    <section class="awards-panel" id="awardsPanel" aria-labelledby="awardsTitle">
+      <div class="awards-head">
+        <div>
+          <span class="reward-label">Úspěchy</span>
+          <h2 id="awardsTitle">Tvoje odznaky</h2>
+        </div>
+        <span class="awards-count" id="awardsCount">0 / 0</span>
+      </div>
+      <div class="awards-grid" id="awardsGrid">
+        <p class="daily-empty">Načítám úspěchy…</p>
       </div>
     </section>
 
@@ -362,6 +382,7 @@
     progress: {},
     rewards: null,
     daily: null,
+    achievements: null,
     lesson: null,
     session: null,
     step: 'overview',
@@ -405,6 +426,8 @@
     rewardFreezes: document.getElementById('rewardFreezes'),
     dailyDate: document.getElementById('dailyDate'),
     dailyQuests: document.getElementById('dailyQuests'),
+    awardsCount: document.getElementById('awardsCount'),
+    awardsGrid: document.getElementById('awardsGrid'),
     themeSwitch: document.getElementById('themeSwitch'),
     textSizeSwitch: document.getElementById('textSizeSwitch'),
     accentSwitch: document.getElementById('accentSwitch'),
@@ -559,6 +582,7 @@
         state.daily = res.daily;
         renderDaily();
       }
+      applyAchievements(res);
       return state.rewards;
     }).catch(function(){
       return state.rewards;
@@ -606,6 +630,53 @@
     }).join('');
   }
 
+  function renderAchievements(){
+    if(!el.awardsGrid) return;
+    var list = state.achievements;
+    if(!list || !list.length){
+      el.awardsGrid.innerHTML = '<p class="daily-empty">Úspěchy se zobrazí po přihlášení k účtu.</p>';
+      if(el.awardsCount) el.awardsCount.textContent = '0 / 0';
+      return;
+    }
+
+    var unlocked = list.filter(function(award){ return !!award.unlocked; }).length;
+    if(el.awardsCount) el.awardsCount.textContent = unlocked + ' / ' + list.length;
+
+    el.awardsGrid.innerHTML = list.map(function(award){
+      var target = Math.max(1, Number(award.target) || 1);
+      var progress = Math.min(Number(award.progress) || 0, target);
+      var percent = Math.round(progress / target * 100);
+      var progressText = progress % 1 === 0 ? String(progress) : progress.toFixed(1);
+      var unit = award.id === 'speed_30' ? ' slov/min' : '';
+      return '<div class="award-card' + (award.unlocked ? ' is-unlocked' : '') + '">' +
+        '<span class="award-icon" aria-hidden="true">' + (award.unlocked ? award.icon : '🔒') + '</span>' +
+        '<div class="award-copy">' +
+          '<div class="award-top"><strong>' + escapeHtml(award.title) + '</strong>' +
+            (award.unlocked ? '<span class="award-state">Splněno</span>' : '') +
+          '</div>' +
+          '<p>' + escapeHtml(award.description) + '</p>' +
+          '<div class="award-bar"><span style="width:' + percent + '%"></span></div>' +
+          '<span class="award-progress">' + progressText + ' / ' + target + unit + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function applyAchievements(res){
+    if(res && res.achievements && res.achievements.length){
+      state.achievements = res.achievements;
+      renderAchievements();
+    }
+    return (res && res.new_achievements) || [];
+  }
+
+  function newAchievementMessage(newAchievements){
+    if(!newAchievements || !newAchievements.length) return '';
+    var first = newAchievements[0];
+    var suffix = newAchievements.length > 1 ? ' (+' + (newAchievements.length - 1) + ' další)' : '';
+    return 'Nový úspěch: ' + first.icon + ' ' + first.title + suffix;
+  }
+
   function claimQuest(questId){
     if(!hasToken() || !window.TypingAPI || !questId) return;
     if(state.claimingQuest) return;
@@ -621,7 +692,11 @@
         state.daily = res.daily;
         renderDaily();
       }
-      if(res && res.claimed){
+      var newAchievements = applyAchievements(res);
+      var achievementMessage = newAchievementMessage(newAchievements);
+      if(achievementMessage){
+        toast(achievementMessage + (res && res.claimed ? ' · +' + res.gems + ' 💎' : ''));
+      } else if(res && res.claimed){
         toast('Odměna převzata: +' + res.gems + ' 💎');
       } else {
         toast('Odměna už byla převzata.');
@@ -634,7 +709,7 @@
   }
 
   function awardLesson(entry){
-    if(!hasToken() || !window.TypingAPI) return Promise.resolve(null);
+    if(!hasToken() || !window.TypingAPI) return Promise.resolve({ reward: null, newAchievements: [] });
     return window.TypingAPI.awardLessonRewards({
       unit: entry.unit,
       lesson: entry.lesson,
@@ -652,28 +727,36 @@
         state.daily = res.daily;
         renderDaily();
       }
-      return res && res.reward ? res.reward : null;
+      return {
+        reward: res && res.reward ? res.reward : null,
+        newAchievements: applyAchievements(res)
+      };
     }).catch(function(){
-      return null;
+      return { reward: null, newAchievements: [] };
     });
   }
 
-  function showResultReward(reward){
+  function showResultReward(reward, newAchievements){
     var box = document.getElementById('resultReward');
-    if(!box || !reward) return;
+    if(!box) return;
     var chips = [];
-    if(reward.xp > 0){
-      chips.push('<span class="reward-chip is-xp">+' + reward.xp + ' XP</span>');
+    if(reward){
+      if(reward.xp > 0){
+        chips.push('<span class="reward-chip is-xp">+' + reward.xp + ' XP</span>');
+      }
+      if(reward.gems > 0){
+        chips.push('<span class="reward-chip is-gems">+' + reward.gems + ' 💎</span>');
+      }
+      if(reward.streak_change > 0){
+        chips.push('<span class="reward-chip">🔥 série ' + reward.streak + ' ' + dayLabel(reward.streak) + '</span>');
+      }
+      if(reward.freeze_used > 0){
+        chips.push('<span class="reward-chip">❄ −' + reward.freeze_used + ' zmrazení</span>');
+      }
     }
-    if(reward.gems > 0){
-      chips.push('<span class="reward-chip is-gems">+' + reward.gems + ' 💎</span>');
-    }
-    if(reward.streak_change > 0){
-      chips.push('<span class="reward-chip">🔥 série ' + reward.streak + ' ' + dayLabel(reward.streak) + '</span>');
-    }
-    if(reward.freeze_used > 0){
-      chips.push('<span class="reward-chip">❄ −' + reward.freeze_used + ' zmrazení</span>');
-    }
+    (newAchievements || []).forEach(function(award){
+      chips.push('<span class="reward-chip is-award">' + award.icon + ' ' + escapeHtml(award.title) + '</span>');
+    });
     box.innerHTML = chips.join('');
   }
 
@@ -710,8 +793,10 @@
       if(res && res.rewards){
         state.rewards = res.rewards;
         writeRewardsCache();
-        toast('Zmrazení řady koupeno.');
       }
+      var newAchievements = applyAchievements(res);
+      var achievementMessage = newAchievementMessage(newAchievements);
+      toast(achievementMessage || 'Zmrazení řady koupeno.');
     }).catch(function(err){
       toast((err && err.message) || 'Nákup se nepovedl.');
     }).then(function(){
@@ -1573,8 +1658,10 @@
         }
         renderRunnerHead();
         return awardLesson(entry);
-      }).then(function(reward){
-        if(reward) showResultReward(reward);
+      }).then(function(result){
+        showResultReward(result && result.reward, result && result.newAchievements);
+        var achievementMessage = newAchievementMessage(result && result.newAchievements);
+        if(achievementMessage) toast(achievementMessage);
       }).catch(function(){
         queuePending(entry);
         toast('Pokrok se nepodařilo uložit na server. Zkusíme to znovu při příštím načtení.');
@@ -1805,6 +1892,7 @@
     var userDropdown = document.getElementById('userDropdown');
     var logoutBtn = document.getElementById('logoutBtn');
     var goLessonsBtn = document.getElementById('goLessonsBtn');
+    var profileBtn = document.getElementById('profileBtn');
 
     if(state.user && hasToken()){
       if(loginBtn) loginBtn.style.display = 'none';
@@ -1842,6 +1930,9 @@
     }
     if(goLessonsBtn){
       goLessonsBtn.addEventListener('click', function(){ window.location.href = 'lekce.html'; });
+    }
+    if(profileBtn){
+      profileBtn.addEventListener('click', function(){ window.location.href = 'profil.html'; });
     }
   }
 

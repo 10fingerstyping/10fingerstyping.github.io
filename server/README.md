@@ -15,7 +15,10 @@ přihlášení a ukládání pokroku.
   a tábor (jeden tábor = jedna lekce) zvlášť.
 - Vede denní sérii (`streak`), drahokamy a zmrazení řady v tabulce `rewards`.
   Drahokamy se dávají za první dokončení lekce, zmrazení se za ně kupují.
-- Nabízí API pro registraci, přihlášení, odhlášení, práci s pokrokem a odměnami.
+- Vypočítává úspěchy (odznaky) z pokroku, XP, série a denních úkolů.
+- Umožňuje změnu uživatelského jména, e-mailu a hesla.
+- Nabízí API pro registraci, přihlášení, odhlášení, práci s pokrokem, odměnami
+  a profilem.
 
 ## Databáze
 
@@ -96,6 +99,18 @@ Dvojice `user_id` + `unit` + `lesson` je primární klíč, takže drahokamy za
 jednu lekci nelze získat opakovaně. Při prvním načtení odměn se doplní
 drahokamy i za lekce dokončené před zavedením odměn.
 
+### Tabulka `user_achievements`
+
+| sloupec          | typ     | popis                                        |
+|------------------|---------|----------------------------------------------|
+| `user_id`        | INTEGER | cizí klíč na `users.id`                      |
+| `achievement_id` | TEXT    | identifikátor odznaku                        |
+| `unlocked_at`    | TEXT    | čas odemčení (UTC, ISO 8601)                 |
+
+Dvojice `user_id` + `achievement_id` je primární klíč. Seznam a cíle odznaků
+jsou definované v `app.py` v konstantě `ACHIEVEMENTS`; server je při načtení
+odměn nebo profilu sám vyhodnotí a nově splněné uloží.
+
 ### Převod staršího pokroku
 
 Starší verze ukládala pokrok podle písmen (`unit = "a"`) a v rámci každého
@@ -175,6 +190,47 @@ Lekce se označí jako dokončená jen při přesnosti alespoň 90 %. Vrací akt
 řádek pokroku. Opakovaný pokus nikdy nesníží nejlepší přesnost ani rychlost.
 V nové osnově je `lesson` vždy `1`, protože každý tábor má právě jednu lekci.
 
+### `GET /api/profile`
+
+Hlavička `Authorization: Bearer <token>`. Vrací údaje účtu, souhrn pokroku,
+odměny a odznaky:
+
+```json
+{
+  "ok": true,
+  "user": { "id": 1, "username": "jan", "email": "jan@email.cz", "role": "user", "created_at": "..." },
+  "stats": {
+    "lessons_completed": 12,
+    "total_lessons": 46,
+    "avg_accuracy": 96.4,
+    "best_wpm": 28.7,
+    "attempts": 19,
+    "achievements_unlocked": 3,
+    "achievements_total": 16
+  },
+  "rewards": { "gems": 40, "xp": 270, "level": 3, "streak": 3, "..." : "..." },
+  "achievements": [
+    { "id": "first_lesson", "title": "První krůček", "description": "Dokonči svou první lekci.", "icon": "🌱", "target": 1, "progress": 1, "unlocked": true, "unlocked_at": "..." }
+  ]
+}
+```
+
+### `POST /api/profile`
+
+Hlavička `Authorization: Bearer <token>`. Mění jméno, e-mail a případně heslo:
+
+```json
+{
+  "username": "jan",
+  "email": "jan@email.cz",
+  "current_password": "stareheslo",
+  "new_password": "noveheslo123"
+}
+```
+
+`current_password` je povinné jen při vyplněném `new_password`. Nové heslo musí
+mít alespoň 8 znaků. Vrací `{ "ok": true, "user": { ... }, "password_changed": true }`.
+
 ### `GET /api/rewards`
 
 Hlavička `Authorization: Bearer <token>`. Nepovinný parametr `?date=YYYY-MM-DD`
@@ -204,7 +260,10 @@ určuje místní den pro denní úkoly. Vrací stav odměn a dnešní úkoly:
       { "id": "lessons", "title": "Dokonči 2 lekce", "target": 2, "progress": 1, "reward": 15, "claimed": false, "done": false },
       { "id": "xp", "title": "Získej 50 XP", "target": 50, "progress": 30, "reward": 20, "claimed": false, "done": false }
     ]
-  }
+  },
+  "achievements": [
+    { "id": "first_lesson", "title": "První krůček", "description": "Dokonči svou první lekci.", "icon": "🌱", "target": 1, "progress": 1, "unlocked": true, "unlocked_at": "..." }
+  ]
 }
 ```
 

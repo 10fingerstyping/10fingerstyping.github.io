@@ -17,6 +17,8 @@ CORS(app)
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 MIN_PASSWORD_LEN = 8
+MIN_USERNAME_LEN = 3
+MAX_USERNAME_LEN = 32
 # Nová osnova má jeden tábor = jednu lekci. `unit` nese identifikátor lekce
 # (číslo tábora) a `lesson` je z důvodu kompatibility vždy 1.
 MAX_UNIT_LEN = 8
@@ -48,6 +50,28 @@ DAILY_QUEST_CLAIMS = {
         "reward": DAILY_QUEST_XP_REWARD,
     },
 }
+
+# Úspěchy jsou odznaky za dlouhodobý pokrok. Definice drží server, takže se
+# stejný seznam zobrazí na všech zařízeních a odznaky nejdou snadno podvrhnout.
+TOTAL_LESSONS = 46
+ACHIEVEMENTS = [
+    {"id": "first_lesson", "title": "První krůček", "description": "Dokonči svou první lekci.", "icon": "🌱", "metric": "lessons", "target": 1},
+    {"id": "lessons_5", "title": "Rozjezd", "description": "Dokonči 5 lekcí.", "icon": "🚀", "metric": "lessons", "target": 5},
+    {"id": "lessons_10", "title": "Desítka", "description": "Dokonči 10 lekcí.", "icon": "🔟", "metric": "lessons", "target": 10},
+    {"id": "lessons_25", "title": "Čtvrtina cesty", "description": "Dokonči 25 lekcí.", "icon": "🧭", "metric": "lessons", "target": 25},
+    {"id": "lessons_all", "title": "Mistr klávesnice", "description": "Dokonči všech 46 lekcí.", "icon": "🏆", "metric": "lessons", "target": TOTAL_LESSONS},
+    {"id": "perfect_lesson", "title": "Bez jediné chyby", "description": "Dokonči lekci se 100% přesností.", "icon": "🎯", "metric": "perfect", "target": 1},
+    {"id": "accuracy_5", "title": "Přesná ruka", "description": "Dokonči 5 lekcí alespoň na 95 %.", "icon": "✋", "metric": "high_accuracy", "target": 5},
+    {"id": "streak_3", "title": "Tři dny v řadě", "description": "Udrž denní sérii 3 dny.", "icon": "🔥", "metric": "best_streak", "target": 3},
+    {"id": "streak_7", "title": "Týdenní návyk", "description": "Udrž denní sérii 7 dní.", "icon": "📅", "metric": "best_streak", "target": 7},
+    {"id": "streak_30", "title": "Měsíc bez přestávky", "description": "Udrž denní sérii 30 dní.", "icon": "🌟", "metric": "best_streak", "target": 30},
+    {"id": "xp_500", "title": "Zkušený písař", "description": "Získej celkem 500 XP.", "icon": "⭐", "metric": "xp", "target": 500},
+    {"id": "level_5", "title": "Úroveň 5", "description": "Dosáhni 5. úrovně.", "icon": "🎖️", "metric": "level", "target": 5},
+    {"id": "speed_30", "title": "Rychlé prsty", "description": "Dosáhni rychlosti 30 slov za minutu.", "icon": "⚡", "metric": "best_wpm", "target": 30},
+    {"id": "daily_2", "title": "Denní dvojka", "description": "Dokonči 2 lekce během jednoho dne.", "icon": "✅", "metric": "daily_lessons", "target": 2},
+    {"id": "quest_first", "title": "První odměna", "description": "Převezmi odměnu za denní úkol.", "icon": "🎁", "metric": "quests_claimed", "target": 1},
+    {"id": "freeze_owner", "title": "Ledový klid", "description": "Kup si zmrazení řady.", "icon": "❄", "metric": "freezes", "target": 1},
+]
 
 
 def get_db():
@@ -151,9 +175,20 @@ def init_db():
         )
         """
     )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_achievements (
+            user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            achievement_id TEXT    NOT NULL,
+            unlocked_at    TEXT    NOT NULL,
+            PRIMARY KEY (user_id, achievement_id)
+        )
+        """
+    )
     db.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_rewarded_user ON rewarded_lessons(user_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_achievements_user ON user_achievements(user_id)")
     db.commit()
     db.close()
 
@@ -328,6 +363,83 @@ def daily_public(db, user_id, day):
     }
 
 
+def achievement_metrics(db, user_id):
+    """Spočítá hodnoty, ze kterých se odvozují úspěchy."""
+    row = ensure_rewards(db, user_id)
+    progress = db.execute(
+        "SELECT "
+        "COALESCE(SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END), 0) AS lessons, "
+        "COALESCE(SUM(CASE WHEN best_accuracy >= 99.95 THEN 1 ELSE 0 END), 0) AS perfect, "
+        "COALESCE(SUM(CASE WHEN completed = 1 AND best_accuracy >= 95 THEN 1 ELSE 0 END), 0) AS high_accuracy, "
+        "COALESCE(MAX(best_wpm), 0) AS best_wpm "
+        "FROM progress WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    daily = db.execute(
+        "SELECT COALESCE(MAX(lessons), 0) AS daily_lessons, "
+        "COALESCE(SUM(lessons_claimed + xp_claimed), 0) AS quests_claimed "
+        "FROM daily_quests WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    xp = int(row["xp"] or 0)
+    return {
+        "lessons": int(progress["lessons"] or 0),
+        "perfect": int(progress["perfect"] or 0),
+        "high_accuracy": int(progress["high_accuracy"] or 0),
+        "best_wpm": float(progress["best_wpm"] or 0),
+        "best_streak": int(row["best_streak"] or 0),
+        "xp": xp,
+        "level": xp // XP_PER_LEVEL + 1,
+        "daily_lessons": int(daily["daily_lessons"] or 0),
+        "quests_claimed": int(daily["quests_claimed"] or 0),
+        "freezes": int(row["freezes"] or 0),
+    }
+
+
+def achievements_public(db, user_id):
+    """Vrátí všechny úspěchy i s progresem a uloží nově získané odznaky."""
+    metrics = achievement_metrics(db, user_id)
+    unlocked = {
+        row["achievement_id"]: row["unlocked_at"]
+        for row in db.execute(
+            "SELECT achievement_id, unlocked_at FROM user_achievements WHERE user_id = ?",
+            (user_id,),
+        ).fetchall()
+    }
+    items = []
+    new_items = []
+    now = now_iso()
+
+    for definition in ACHIEVEMENTS:
+        value = metrics.get(definition["metric"], 0)
+        target = definition["target"]
+        newly_unlocked = False
+        if definition["id"] not in unlocked and value >= target:
+            db.execute(
+                "INSERT OR IGNORE INTO user_achievements "
+                "(user_id, achievement_id, unlocked_at) VALUES (?, ?, ?)",
+                (user_id, definition["id"], now),
+            )
+            unlocked[definition["id"]] = now
+            newly_unlocked = True
+
+        item = {
+            "id": definition["id"],
+            "title": definition["title"],
+            "description": definition["description"],
+            "icon": definition["icon"],
+            "target": target,
+            "progress": target if definition["id"] in unlocked else min(value, target),
+            "unlocked": definition["id"] in unlocked,
+            "unlocked_at": unlocked.get(definition["id"]),
+        }
+        items.append(item)
+        if newly_unlocked:
+            new_items.append(item)
+
+    return items, new_items
+
+
 def update_streak(db, row, active_date):
     """Posune denní sérii. Vynechané dny spotřebují zmrazení, jinak série začne znovu."""
     user_id = row["user_id"]
@@ -399,8 +511,10 @@ def register():
 
     if not username:
         return error("Uživatelské jméno je povinné.")
-    if len(username) < 3:
-        return error("Uživatelské jméno musí mít alespoň 3 znaky.")
+    if len(username) < MIN_USERNAME_LEN:
+        return error(f"Uživatelské jméno musí mít alespoň {MIN_USERNAME_LEN} znaky.")
+    if len(username) > MAX_USERNAME_LEN:
+        return error(f"Uživatelské jméno může mít nejvýš {MAX_USERNAME_LEN} znaků.")
     if not email:
         return error("E-mail je povinný.")
     if not EMAIL_RE.match(email):
@@ -456,6 +570,110 @@ def logout():
         db.execute("DELETE FROM sessions WHERE token = ?", (token,))
         db.commit()
     return jsonify({"ok": True})
+
+
+@app.get("/api/profile")
+def get_profile():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    db = get_db()
+    stats = db.execute(
+        "SELECT "
+        "COALESCE(SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END), 0) AS lessons_completed, "
+        "COALESCE(AVG(CASE WHEN completed = 1 THEN best_accuracy END), 0) AS avg_accuracy, "
+        "COALESCE(MAX(best_wpm), 0) AS best_wpm, "
+        "COALESCE(SUM(attempts), 0) AS attempts "
+        "FROM progress WHERE user_id = ?",
+        (user["id"],),
+    ).fetchone()
+    rewards = rewards_public(db, user["id"])
+    achievements, _ = achievements_public(db, user["id"])
+    db.commit()
+
+    return jsonify(
+        {
+            "ok": True,
+            "user": user_public(user),
+            "stats": {
+                "lessons_completed": int(stats["lessons_completed"] or 0),
+                "total_lessons": TOTAL_LESSONS,
+                "avg_accuracy": round(float(stats["avg_accuracy"] or 0), 1),
+                "best_wpm": round(float(stats["best_wpm"] or 0), 1),
+                "attempts": int(stats["attempts"] or 0),
+                "achievements_unlocked": sum(1 for item in achievements if item["unlocked"]),
+                "achievements_total": len(achievements),
+            },
+            "rewards": rewards,
+            "achievements": achievements,
+        }
+    )
+
+
+@app.post("/api/profile")
+def update_profile():
+    user, auth_error = require_user()
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    current_password = data.get("current_password") or ""
+    new_password = data.get("new_password") or ""
+
+    if not username:
+        return error("Uživatelské jméno je povinné.")
+    if len(username) < MIN_USERNAME_LEN:
+        return error(f"Uživatelské jméno musí mít alespoň {MIN_USERNAME_LEN} znaky.")
+    if len(username) > MAX_USERNAME_LEN:
+        return error(f"Uživatelské jméno může mít nejvýš {MAX_USERNAME_LEN} znaků.")
+    if not email:
+        return error("E-mail je povinný.")
+    if not EMAIL_RE.match(email):
+        return error("E-mail nemá správný tvar.")
+
+    db = get_db()
+    other = db.execute(
+        "SELECT id FROM users WHERE email = ? AND id != ?",
+        (email, user["id"]),
+    ).fetchone()
+    if other:
+        return error("Účet s tímto e-mailem už existuje.", 409)
+    other = db.execute(
+        "SELECT id FROM users WHERE username = ? AND id != ?",
+        (username, user["id"]),
+    ).fetchone()
+    if other:
+        return error("Toto uživatelské jméno je už obsazené.", 409)
+
+    password_hash = user["password_hash"]
+    password_changed = False
+    if new_password:
+        if len(new_password) < MIN_PASSWORD_LEN:
+            return error(f"Heslo musí mít alespoň {MIN_PASSWORD_LEN} znaků.")
+        if not current_password:
+            return error("Pro změnu hesla zadejte současné heslo.")
+        if not check_password_hash(user["password_hash"], current_password):
+            return error("Současné heslo není správné.", 403)
+        password_hash = generate_password_hash(new_password)
+        password_changed = True
+
+    db.execute(
+        "UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = ?",
+        (username, email, password_hash, user["id"]),
+    )
+    db.commit()
+    row = db.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
+
+    return jsonify(
+        {
+            "ok": True,
+            "user": user_public(row),
+            "password_changed": password_changed,
+        }
+    )
 
 
 @app.get("/api/progress")
@@ -581,8 +799,16 @@ def get_rewards():
     day = parse_active_date(request.args.get("date"))
     rewards = rewards_public(db, user["id"])
     daily = daily_public(db, user["id"], day)
+    achievements, _ = achievements_public(db, user["id"])
     db.commit()
-    return jsonify({"ok": True, "rewards": rewards, "daily": daily})
+    return jsonify(
+        {
+            "ok": True,
+            "rewards": rewards,
+            "daily": daily,
+            "achievements": achievements,
+        }
+    )
 
 
 @app.post("/api/rewards/lesson")
@@ -655,11 +881,18 @@ def award_lesson_rewards():
         }
     db.commit()
 
+    rewards = rewards_public(db, user["id"])
+    daily = daily_public(db, user["id"], active_date)
+    achievements, new_achievements = achievements_public(db, user["id"])
+    db.commit()
+
     return jsonify(
         {
             "ok": True,
-            "rewards": rewards_public(db, user["id"]),
-            "daily": daily_public(db, user["id"], active_date),
+            "rewards": rewards,
+            "daily": daily,
+            "achievements": achievements,
+            "new_achievements": new_achievements,
             "reward": {
                 "gems": gems_awarded,
                 "first_time": first_time,
@@ -695,7 +928,17 @@ def buy_freeze():
         (FREEZE_PRICE, now_iso(), user["id"]),
     )
     db.commit()
-    return jsonify({"ok": True, "rewards": rewards_public(db, user["id"])})
+    rewards = rewards_public(db, user["id"])
+    achievements, new_achievements = achievements_public(db, user["id"])
+    db.commit()
+    return jsonify(
+        {
+            "ok": True,
+            "rewards": rewards,
+            "achievements": achievements,
+            "new_achievements": new_achievements,
+        }
+    )
 
 
 @app.post("/api/rewards/quest")
@@ -719,11 +962,14 @@ def claim_daily_quest():
     if progress < int(quest["target"]):
         return error("Tento úkol ještě není splněný.")
     if row[quest["claimed"]]:
+        achievements, _ = achievements_public(db, user["id"])
+        db.commit()
         return jsonify(
             {
                 "ok": True,
                 "rewards": rewards_public(db, user["id"]),
                 "daily": daily_public(db, user["id"], active_date),
+                "achievements": achievements,
                 "claimed": False,
             }
         )
@@ -739,11 +985,17 @@ def claim_daily_quest():
         (quest["reward"], now, user["id"]),
     )
     db.commit()
+    rewards = rewards_public(db, user["id"])
+    daily = daily_public(db, user["id"], active_date)
+    achievements, new_achievements = achievements_public(db, user["id"])
+    db.commit()
     return jsonify(
         {
             "ok": True,
-            "rewards": rewards_public(db, user["id"]),
-            "daily": daily_public(db, user["id"], active_date),
+            "rewards": rewards,
+            "daily": daily,
+            "achievements": achievements,
+            "new_achievements": new_achievements,
             "claimed": True,
             "gems": quest["reward"],
         }

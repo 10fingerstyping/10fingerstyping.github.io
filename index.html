@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>10fingerstyping – kurz psaní všemi deseti</title>
 <meta name="description" content="Naučte se psát všemi deseti prsty. Kurz psaní pro běžné uživatele i pro školy.">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=21">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -45,6 +45,7 @@
         </button>
         <div id="userDropdown" class="user-dropdown">
           <button id="goLessonsBtn" type="button">Moje lekce</button>
+          <button id="profileBtn" type="button">Nastavení profilu</button>
           <button id="logoutBtn" type="button">Odhlásit se</button>
         </div>
       </div>
@@ -292,6 +293,7 @@
     var userDropdown = document.getElementById('userDropdown');
     var logoutBtn = document.getElementById('logoutBtn');
     var goLessonsBtn = document.getElementById('goLessonsBtn');
+    var profileBtn = document.getElementById('profileBtn');
     try {
       var u = JSON.parse(localStorage.getItem('user') || 'null');
       if(u && (u.username || u.email) && localStorage.getItem('token')){
@@ -324,6 +326,11 @@
     if(goLessonsBtn){
       goLessonsBtn.addEventListener('click', function(){
         window.location.href = 'lekce.html';
+      });
+    }
+    if(profileBtn){
+      profileBtn.addEventListener('click', function(){
+        window.location.href = 'profil.html';
       });
     }
   })();

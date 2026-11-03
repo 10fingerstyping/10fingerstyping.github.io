@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nastavení profilu – 10fingerstyping</title>
+<meta name="description" content="Správa účtu 10fingerstyping – uživatelské jméno, e-mail, heslo a přehled pokroku.">
+<link rel="stylesheet" href="style.css?v=21">
+<script>
+  (function(){
+    var t = localStorage.getItem('theme');
+    if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    document.documentElement.setAttribute('data-theme', t);
+    var a = localStorage.getItem('accent') || 'green';
+    document.documentElement.setAttribute('data-accent', a);
+    var z = localStorage.getItem('textSize') || 'm';
+    document.documentElement.setAttribute('data-text-size', z);
+  })();
+</script>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+    <div class="header-right">
+      <nav>
+        <a href="index.html#pro-koho">Pro koho</a>
+        <a href="index.html#funkce">Funkce</a>
+        <a href="index.html#skoly">Školy</a>
+      </nav>
+      <button class="toggle" id="themeBtn" type="button" aria-label="Přepnout tmavý a světlý režim">◐</button>
+      <a class="login" id="loginBtn" href="prihlaseni.html">Přihlásit se</a>
+      <div id="userMenu" class="user-menu" style="display:none;">
+        <button id="userBtn" class="user-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar" id="userAvatar">U</span>
+          <span id="userName">Uživatel</span>
+          <span style="font-size:10px;color:var(--muted)">▾</span>
+        </button>
+        <div id="userDropdown" class="user-dropdown">
+          <button id="goLessonsBtn" type="button">Moje lekce</button>
+          <button id="logoutBtn" type="button">Odhlásit se</button>
+        </div>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div class="wrap">
+  <main class="profile-shell">
+    <div class="profile-hero">
+      <div class="profile-avatar" id="profileAvatar" aria-hidden="true">U</div>
+      <div class="profile-hero-copy">
+        <span class="eyebrow">Můj účet</span>
+        <h1 id="profileName">Nastavení profilu</h1>
+        <p id="profileEmail" class="profile-email"></p>
+        <p class="profile-since" id="profileSince"></p>
+      </div>
+      <a class="ghost-btn profile-back" href="lekce.html">← Zpět na lekce</a>
+    </div>
+
+    <div class="profile-layout">
+      <section class="profile-card" aria-labelledby="accountTitle">
+        <div class="profile-card-head">
+          <h2 id="accountTitle">Údaje účtu</h2>
+          <p>Jméno a e-mail se ukládají na server, takže se projeví na všech zařízeních.</p>
+        </div>
+
+        <form id="profileForm" novalidate>
+          <div class="profile-form-grid">
+            <div class="field">
+              <label for="username">Uživatelské jméno</label>
+              <input type="text" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" required>
+              <span class="hint">Alespoň 3 znaky, nejvýš 32.</span>
+            </div>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" name="email" autocomplete="email" required>
+              <span class="hint">Používá se pro přihlášení.</span>
+            </div>
+          </div>
+
+          <div class="profile-divider">
+            <h3>Změna hesla</h3>
+            <p>Heslo měň jen tehdy, když ho chceš mít nové. Vyplň současné heslo a dvakrát nové.</p>
+          </div>
+
+          <div class="field">
+            <label for="currentPassword">Současné heslo</label>
+            <input type="password" id="currentPassword" name="current_password" autocomplete="current-password" placeholder="••••••••">
+          </div>
+
+          <div class="profile-form-grid">
+            <div class="field">
+              <label for="newPassword">Nové heslo</label>
+              <input type="password" id="newPassword" name="new_password" autocomplete="new-password" minlength="8" placeholder="••••••••">
+              <span class="hint">Alespoň 8 znaků.</span>
+            </div>
+            <div class="field">
+              <label for="confirmPassword">Nové heslo znovu</label>
+              <input type="password" id="confirmPassword" name="confirm_password" autocomplete="new-password" placeholder="••••••••">
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn" type="submit" id="saveProfileBtn">Uložit změny</button>
+            <span class="form-message" id="profileMessage" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <aside class="profile-side">
+        <section class="profile-card" aria-labelledby="statsTitle">
+          <div class="profile-card-head">
+            <h2 id="statsTitle">Tvůj pokrok</h2>
+            <p>Přehled toho, co už máš za sebou.</p>
+          </div>
+          <div class="profile-stats" id="profileStats">
+            <div class="dash-card">
+              <span class="dash-label">Úroveň</span>
+              <strong id="statLevel">1</strong>
+              <span class="dash-unit" id="statLevelProgress">0 / 100 XP</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Dokončené lekce</span>
+              <strong id="statLessons">0 / 46</strong>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Denní série</span>
+              <strong id="statStreak">0 dní</strong>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Drahokamy</span>
+              <strong id="statGems">0</strong>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Průměrná přesnost</span>
+              <strong id="statAccuracy">–</strong>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Nejlepší rychlost</span>
+              <strong id="statWpm">–</strong>
+              <span class="dash-unit">slov/min</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">XP celkem</span>
+              <strong id="statXp">0 XP</strong>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Úspěchy</span>
+              <strong id="statAchievements">0 / 16</strong>
+            </div>
+          </div>
+          <div class="profile-level">
+            <div class="dash-bar"><span id="profileLevelBar" style="width:0%"></span></div>
+          </div>
+        </section>
+
+        <section class="profile-card" aria-labelledby="profileAwardsTitle">
+          <div class="profile-card-head profile-card-head-row">
+            <div>
+              <h2 id="profileAwardsTitle">Odznaky</h2>
+              <p>Úspěchy se odemykají automaticky podle tvého pokroku.</p>
+            </div>
+            <span class="awards-count" id="profileAwardsCount">0 / 0</span>
+          </div>
+          <div class="awards-grid" id="profileAwards">
+            <p class="daily-empty">Načítám úspěchy…</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="index.html"><span class="logo-num">10</span><span class="logo-mid">fingers</span><span class="logo-rest">typing</span></a>
+      <p>Naučte se psát všemi deseti – pro domov, práci i školu.</p>
+    </div>
+    <div class="footer-links">
+      <a href="lekce.html">Lekce</a>
+      <a href="ochrana-osobnich-udaju.html">Ochrana osobních údajů</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script src="api.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var state = {
+    user: null,
+    achievements: [],
+    saving: false
+  };
+
+  var el = {
+    loginBtn: document.getElementById('loginBtn'),
+    userMenu: document.getElementById('userMenu'),
+    userName: document.getElementById('userName'),
+    userAvatar: document.getElementById('userAvatar'),
+    userBtn: document.getElementById('userBtn'),
+    userDropdown: document.getElementById('userDropdown'),
+    profileBtn: document.getElementById('profileBtn'),
+    goLessonsBtn: document.getElementById('goLessonsBtn'),
+    logoutBtn: document.getElementById('logoutBtn'),
+    form: document.getElementById('profileForm'),
+    username: document.getElementById('username'),
+    email: document.getElementById('email'),
+    currentPassword: document.getElementById('currentPassword'),
+    newPassword: document.getElementById('newPassword'),
+    confirmPassword: document.getElementById('confirmPassword'),
+    saveBtn: document.getElementById('saveProfileBtn'),
+    message: document.getElementById('profileMessage'),
+    profileAvatar: document.getElementById('profileAvatar'),
+    profileName: document.getElementById('profileName'),
+    profileEmail: document.getElementById('profileEmail'),
+    profileSince: document.getElementById('profileSince'),
+    statLevel: document.getElementById('statLevel'),
+    statLevelProgress: document.getElementById('statLevelProgress'),
+    statLessons: document.getElementById('statLessons'),
+    statStreak: document.getElementById('statStreak'),
+    statGems: document.getElementById('statGems'),
+    statAccuracy: document.getElementById('statAccuracy'),
+    statWpm: document.getElementById('statWpm'),
+    statXp: document.getElementById('statXp'),
+    statAchievements: document.getElementById('statAchievements'),
+    levelBar: document.getElementById('profileLevelBar'),
+    awards: document.getElementById('profileAwards'),
+    awardsCount: document.getElementById('profileAwardsCount')
+  };
+
+  function readUser(){
+    try {
+      var user = JSON.parse(localStorage.getItem('user') || 'null');
+      if(user && (user.username || user.email)) return user;
+    } catch(e){}
+    return null;
+  }
+
+  function writeUser(user){
+    try { localStorage.setItem('user', JSON.stringify(user)); } catch(e){}
+  }
+
+  function hasToken(){
+    return !!(window.TypingAPI && window.TypingAPI.hasToken());
+  }
+
+  function escapeHtml(text){
+    return String(text == null ? '' : text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function dayLabel(count){
+    var n = Number(count) || 0;
+    if(n === 1) return 'den';
+    if(n >= 2 && n <= 4) return 'dny';
+    return 'dní';
+  }
+
+  function formatDate(value){
+    if(!value) return '';
+    var date = new Date(value);
+    if(isNaN(date.getTime())) return '';
+    try { return date.toLocaleDateString('cs-CZ'); } catch(e){ return ''; }
+  }
+
+  var toastEl = document.getElementById('toast');
+  var toastTimer;
+  function toast(message){
+    if(!toastEl) return;
+    toastEl.textContent = message;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2800);
+  }
+
+  function setMessage(text, kind){
+    if(!el.message) return;
+    el.message.textContent = text || '';
+    el.message.className = 'form-message' + (kind ? ' is-' + kind : '');
+  }
+
+  function renderHeader(){
+    var user = state.user;
+    if(!user) return;
+    var name = user.username || user.email || 'Uživatel';
+    if(el.loginBtn) el.loginBtn.style.display = 'none';
+    if(el.userMenu) el.userMenu.style.display = 'block';
+    if(el.userName) el.userName.textContent = name;
+    if(el.userAvatar) el.userAvatar.textContent = (name.charAt(0) || 'U').toUpperCase();
+  }
+
+  function renderProfile(user){
+    if(!user) return;
+    var name = user.username || user.email || 'Uživatel';
+    if(el.profileName) el.profileName.textContent = name;
+    if(el.profileEmail) el.profileEmail.textContent = user.email || '';
+    if(el.profileAvatar) el.profileAvatar.textContent = (name.charAt(0) || 'U').toUpperCase();
+    if(el.profileSince){
+      var since = formatDate(user.created_at);
+      el.profileSince.textContent = since ? 'Člen od ' + since : '';
+    }
+    if(el.username) el.username.value = user.username || '';
+    if(el.email) el.email.value = user.email || '';
+  }
+
+  function renderStats(payload){
+    var stats = (payload && payload.stats) || {};
+    var rewards = (payload && payload.rewards) || {};
+    var level = Number(rewards.level) || 1;
+    var levelProgress = Number(rewards.level_progress) || 0;
+    var levelTarget = Number(rewards.level_target) || 100;
+    var percent = Math.max(0, Math.min(100, Math.round(levelProgress / levelTarget * 100)));
+
+    if(el.statLevel) el.statLevel.textContent = level;
+    if(el.statLevelProgress) el.statLevelProgress.textContent = levelProgress + ' / ' + levelTarget + ' XP';
+    if(el.statLessons) el.statLessons.textContent = (stats.lessons_completed || 0) + ' / ' + (stats.total_lessons || 46);
+    if(el.statStreak) el.statStreak.textContent = (rewards.streak || 0) + ' ' + dayLabel(rewards.streak);
+    if(el.statGems) el.statGems.textContent = rewards.gems || 0;
+    if(el.statAccuracy) el.statAccuracy.textContent = stats.avg_accuracy ? stats.avg_accuracy + ' %' : '–';
+    if(el.statWpm) el.statWpm.textContent = stats.best_wpm ? stats.best_wpm : '–';
+    if(el.statXp) el.statXp.textContent = (rewards.xp || 0) + ' XP';
+    if(el.statAchievements){
+      el.statAchievements.textContent = (stats.achievements_unlocked || 0) + ' / ' + (stats.achievements_total || 0);
+    }
+    if(el.levelBar) el.levelBar.style.width = percent + '%';
+  }
+
+  function renderAchievements(list){
+    state.achievements = list || [];
+    if(!el.awards) return;
+    if(!state.achievements.length){
+      el.awards.innerHTML = '<p class="daily-empty">Úspěchy se zobrazí po načtení profilu.</p>';
+      if(el.awardsCount) el.awardsCount.textContent = '0 / 0';
+      return;
+    }
+
+    var unlocked = state.achievements.filter(function(award){ return !!award.unlocked; }).length;
+    if(el.awardsCount) el.awardsCount.textContent = unlocked + ' / ' + state.achievements.length;
+
+    el.awards.innerHTML = state.achievements.map(function(award){
+      var target = Math.max(1, Number(award.target) || 1);
+      var progress = Math.min(Number(award.progress) || 0, target);
+      var percent = Math.round(progress / target * 100);
+      var progressText = progress % 1 === 0 ? String(progress) : progress.toFixed(1);
+      var unit = award.id === 'speed_30' ? ' slov/min' : '';
+      return '<div class="award-card' + (award.unlocked ? ' is-unlocked' : '') + '">' +
+        '<span class="award-icon" aria-hidden="true">' + (award.unlocked ? award.icon : '🔒') + '</span>' +
+        '<div class="award-copy">' +
+          '<div class="award-top"><strong>' + escapeHtml(award.title) + '</strong>' +
+            (award.unlocked ? '<span class="award-state">Splněno</span>' : '') +
+          '</div>' +
+          '<p>' + escapeHtml(award.description) + '</p>' +
+          '<div class="award-bar"><span style="width:' + percent + '%"></span></div>' +
+          '<span class="award-progress">' + progressText + ' / ' + target + unit + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function loadProfile(){
+    if(!hasToken()){
+      window.location.href = 'prihlaseni.html';
+      return;
+    }
+    window.TypingAPI.getProfile().then(function(res){
+      if(res && res.user){
+        state.user = res.user;
+        writeUser(res.user);
+        renderHeader();
+        renderProfile(res.user);
+      }
+      renderStats(res);
+      renderAchievements(res && res.achievements);
+    }).catch(function(err){
+      if(err && err.status === 401){
+        window.TypingAPI.clearAuth();
+        window.location.href = 'prihlaseni.html';
+        return;
+      }
+      setMessage((err && err.message) || 'Profil se nepodařilo načíst. Zkuste to prosím znovu.', 'error');
+      toast('Profil se nepodařilo načíst.');
+    });
+  }
+
+  function saveProfile(event){
+    event.preventDefault();
+    if(state.saving) return;
+    if(!hasToken()){
+      window.location.href = 'prihlaseni.html';
+      return;
+    }
+
+    var username = el.username ? el.username.value.trim() : '';
+    var email = el.email ? el.email.value.trim() : '';
+    var currentPassword = el.currentPassword ? el.currentPassword.value : '';
+    var newPassword = el.newPassword ? el.newPassword.value : '';
+    var confirmPassword = el.confirmPassword ? el.confirmPassword.value : '';
+
+    if(!username){ setMessage('Zadejte uživatelské jméno.', 'error'); return; }
+    if(username.length < 3){ setMessage('Uživatelské jméno musí mít alespoň 3 znaky.', 'error'); return; }
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+      setMessage('Zadejte e-mail ve správném tvaru.', 'error');
+      return;
+    }
+    if(newPassword && newPassword.length < 8){
+      setMessage('Nové heslo musí mít alespoň 8 znaků.', 'error');
+      return;
+    }
+    if(newPassword !== confirmPassword){
+      setMessage('Nová hesla se neshodují.', 'error');
+      return;
+    }
+    if(newPassword && !currentPassword){
+      setMessage('Pro změnu hesla zadejte současné heslo.', 'error');
+      return;
+    }
+
+    state.saving = true;
+    if(el.saveBtn){ el.saveBtn.disabled = true; el.saveBtn.textContent = 'Ukládám…'; }
+    setMessage('');
+
+    window.TypingAPI.updateProfile({
+      username: username,
+      email: email,
+      current_password: currentPassword,
+      new_password: newPassword
+    }).then(function(res){
+      if(res && res.user){
+        state.user = res.user;
+        writeUser(res.user);
+        renderHeader();
+        renderProfile(res.user);
+      }
+      if(el.currentPassword) el.currentPassword.value = '';
+      if(el.newPassword) el.newPassword.value = '';
+      if(el.confirmPassword) el.confirmPassword.value = '';
+      setMessage(res && res.password_changed ? 'Profil a heslo jsou uložené.' : 'Profil je uložený.', 'success');
+      toast('Změny se uložily.');
+    }).catch(function(err){
+      if(err && err.status === 401){
+        window.TypingAPI.clearAuth();
+        window.location.href = 'prihlaseni.html';
+        return;
+      }
+      setMessage((err && err.message) || 'Změny se nepodařilo uložit.', 'error');
+    }).then(function(){
+      state.saving = false;
+      if(el.saveBtn){ el.saveBtn.disabled = false; el.saveBtn.textContent = 'Uložit změny'; }
+    });
+  }
+
+  function setupHeader(){
+    if(el.userBtn && el.userDropdown){
+      el.userBtn.addEventListener('click', function(event){
+        event.stopPropagation();
+        var open = el.userDropdown.classList.toggle('open');
+        el.userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function(event){
+        if(el.userMenu && !el.userMenu.contains(event.target)){
+          el.userDropdown.classList.remove('open');
+          if(el.userBtn) el.userBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if(el.goLessonsBtn){
+      el.goLessonsBtn.addEventListener('click', function(){ window.location.href = 'lekce.html'; });
+    }
+    if(el.logoutBtn){
+      el.logoutBtn.addEventListener('click', function(){
+        if(window.TypingAPI) window.TypingAPI.logout().catch(function(){});
+        if(window.TypingAPI) window.TypingAPI.clearAuth();
+        else {
+          try { localStorage.removeItem('token'); localStorage.removeItem('user'); localStorage.removeItem('loggedIn'); } catch(e){}
+        }
+        window.location.href = 'index.html';
+      });
+    }
+  }
+
+  function setupTheme(){
+    var themeBtn = document.getElementById('themeBtn');
+    if(!themeBtn) return;
+    themeBtn.addEventListener('click', function(){
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch(e){}
+    });
+  }
+
+  function init(){
+    state.user = readUser();
+    renderHeader();
+    setupHeader();
+    setupTheme();
+    if(el.form) el.form.addEventListener('submit', saveProfile);
+    loadProfile();
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
