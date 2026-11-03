@@ -406,50 +406,15 @@
     return isBasicLetter(first) ? first.toUpperCase() + word.slice(1) : word;
   }
 
-  function buildWordTokens(ctx, rnd, minLen, maxLen) {
-    var pool = ctx.words;
+  function pseudoTokens(ctx, rnd, minLen, maxLen) {
     var tokens = [];
     var length = 0;
     var focusUsed = !ctx.focusLetter;
     var guard = 0;
 
     while ((length < minLen || tokens.length < 3) && tokens.length < 14 && guard++ < 80) {
-      if (pool.length <= 5) {
-        var small = null;
-        if (pool.length && rnd() < 0.35) {
-          small = pick(pool, rnd);
-          if (tokens.indexOf(small) !== -1) small = null;
-        }
-        if (!small) {
-          small = pseudoWord(ctx.letters, focusUsed ? pick(ctx.letters, rnd) : ctx.focusLetter, rnd, 2, 6);
-        }
-        tokens.push(small);
-        length = tokens.join(' ').length;
-        if (ctx.focusLetter && small.indexOf(ctx.focusLetter) !== -1) focusUsed = true;
-        if (length >= maxLen) break;
-        continue;
-      }
-
-      var candidates = pool;
-      if (!focusUsed && ctx.focusLetter) {
-        var withFocus = pool.filter(function (w) {
-          return w.indexOf(ctx.focusLetter) !== -1 && tokens.indexOf(w) === -1;
-        });
-        if (withFocus.length) candidates = withFocus;
-      }
-
-      var word = null;
-      var fits = candidates.filter(function (w) {
-        return w.length + 1 <= Math.max(5, maxLen - length) && tokens.indexOf(w) === -1;
-      });
-      if (fits.length) word = pick(fits, rnd);
-      else if (candidates.length) word = pick(candidates, rnd);
-
-      if (!word) {
-        word = pseudoWord(ctx.letters, focusUsed ? pick(ctx.letters, rnd) : ctx.focusLetter, rnd, 2, 5);
-      }
-      if (tokens.indexOf(word) !== -1 && pool.length > 6) continue;
-
+      var word = pseudoWord(ctx.letters, focusUsed ? pick(ctx.letters, rnd) : ctx.focusLetter, rnd, 3, 5);
+      if (tokens.indexOf(word) !== -1 && ctx.letters.length > 3) continue;
       tokens.push(word);
       length += word.length + 1;
       if (ctx.focusLetter && word.indexOf(ctx.focusLetter) !== -1) focusUsed = true;
@@ -457,7 +422,69 @@
     }
 
     if (!focusUsed && ctx.focusLetter && ctx.letters.length) {
-      tokens.push(pseudoWord(ctx.letters, ctx.focusLetter, rnd, 2, 5));
+      tokens.push(pseudoWord(ctx.letters, ctx.focusLetter, rnd, 3, 5));
+    }
+    return tokens;
+  }
+
+  function buildWordTokens(ctx, rnd, minLen, maxLen) {
+    var pool = ctx.words;
+    if (!pool.length) return pseudoTokens(ctx, rnd, minLen, maxLen);
+
+    var tokens = [];
+    var length = 0;
+    var focusUsed = !ctx.focusLetter;
+    var last = '';
+    var guard = 0;
+
+    while ((length < minLen || tokens.length < 3) && tokens.length < 14 && guard++ < 120) {
+      var candidates = pool.filter(function (w) { return w !== last; });
+      if (!candidates.length) candidates = pool;
+
+      if (!focusUsed && ctx.focusLetter) {
+        var withFocus = candidates.filter(function (w) {
+          return w.indexOf(ctx.focusLetter) !== -1;
+        });
+        if (withFocus.length) candidates = withFocus;
+      }
+
+      var room = Math.max(4, maxLen - length);
+      var fits = candidates.filter(function (w) { return w.length + 1 <= room; });
+      var word;
+      if (fits.length) {
+        word = pick(fits, rnd);
+      } else if (length < minLen) {
+        word = candidates.slice().sort(function (a, b) { return a.length - b.length; })[0];
+      } else {
+        break;
+      }
+      if (!word) break;
+
+      // V prvních lekcích je reálných slov málo. Střídáme je proto
+      // s procvičovacími skupinami, aby řádky nebyly pořád stejné.
+      if (pool.length < 4 && tokens.length && rnd() < 0.45) {
+        var filler = pseudoWord(ctx.letters, focusUsed ? pick(ctx.letters, rnd) : ctx.focusLetter, rnd, 3, 5);
+        if (filler && tokens.indexOf(filler) === -1) {
+          tokens.push(filler);
+          length += filler.length + 1;
+          if (ctx.focusLetter && filler.indexOf(ctx.focusLetter) !== -1) focusUsed = true;
+          if (length >= maxLen) break;
+          continue;
+        }
+      }
+
+      tokens.push(word);
+      length += word.length + 1;
+      last = word;
+      if (ctx.focusLetter && word.indexOf(ctx.focusLetter) !== -1) focusUsed = true;
+      if (length >= maxLen) break;
+    }
+
+    if (!focusUsed && ctx.focusLetter) {
+      var extra = pool.filter(function (w) {
+        return w.indexOf(ctx.focusLetter) !== -1 && tokens.indexOf(w) === -1;
+      });
+      if (extra.length) tokens.push(pick(extra, rnd));
     }
     return tokens;
   }
@@ -608,6 +635,57 @@
       lines.push(ctx.period
         ? sentenceLine(lineCtx, rnd, minLen, maxLen)
         : beforePeriodWordLine(lineCtx, rnd, minLen, maxLen));
+    }
+    return lines;
+  }
+
+  function ensureCaps(line) {
+    for (var i = 0; i < line.length; i++) {
+      var ch = line.charAt(i);
+      if (isLetter(ch.toLowerCase())) {
+        return line.slice(0, i) + ch.toUpperCase() + line.slice(i + 1);
+      }
+    }
+    return line;
+  }
+
+  function wordLineForKind(ctx, rnd, kind, index) {
+    var minLen = 16 + Math.floor(index * 0.9);
+    var maxLen = minLen + 10;
+    var main = kind === 'symbols' && ctx.focusSymbols.length ? ctx.focusSymbols[0] : null;
+
+    if (kind === 'symbols') {
+      if (main === ',') return commaWordLine(ctx, rnd, minLen, maxLen);
+      if (main === '.') return sentenceLine(ctx, rnd, minLen, maxLen);
+      if (main === '´') return deadKeyWordLine(ctx, rnd, pickVowels(ctx.letters), minLen, maxLen);
+      if (main === '?') {
+        return index % 2 ? questionLine(ctx, rnd, minLen, maxLen) : quotedLine(ctx, rnd, minLen, maxLen);
+      }
+      if (main === '"') return quotedLine(ctx, rnd, minLen, maxLen);
+      return symbolWordLine(ctx, rnd, minLen, maxLen, main || '(');
+    }
+
+    var line = letterWordLines(ctx, rnd, 1, minLen, maxLen)[0];
+    if (kind === 'shift') line = ensureCaps(line);
+    return line;
+  }
+
+  function wordExerciseLines(ctx, rnd, kind, count) {
+    var lines = [];
+    var guard = 0;
+
+    while (lines.length < count && guard++ < count * 40) {
+      var line = wordLineForKind(ctx, rnd, kind, lines.length);
+      if (line && lines.indexOf(line) === -1) lines.push(line);
+    }
+
+    // Pojistka pro první lekce, kde z naučených písmen ještě žádná
+    // skutečná slova nejdou poskládat.
+    guard = 0;
+    while (lines.length < count && guard++ < count * 40 && kind !== 'symbols') {
+      var fallback = nl(ctx, randomGroups(ctx.letters, ctx.focus.length ? ctx.focus : ctx.letters, rnd, 18, 28, 3));
+      if (kind === 'shift') fallback = ensureCaps(fallback);
+      if (lines.indexOf(fallback) === -1) lines.push(fallback);
     }
     return lines;
   }
@@ -845,43 +923,7 @@
   }
 
   var EXERCISES_PER_LESSON = 20;
-
-  function extraLessonLines(ctx, rnd, kind, used) {
-    var extras = [];
-    var mainSymbol = kind === 'symbols' && ctx.focusSymbols.length ? ctx.focusSymbols[0] : null;
-    var focusPool = ctx.focus.length ? ctx.focus : ctx.letters;
-    var guard = 0;
-
-    function add(line) {
-      if (line && used.indexOf(line) === -1 && extras.indexOf(line) === -1) extras.push(line);
-    }
-
-    while (extras.length < 10 && guard++ < 80) {
-      var minLen = 26 + (guard % 4) * 4;
-      var maxLen = minLen + 10 + (guard % 3) * 4;
-
-      if (kind === 'symbols') {
-        if (mainSymbol === ',') {
-          add(commaWordLine(ctx, rnd, minLen, maxLen));
-        } else if (mainSymbol === '.') {
-          add(sentenceLine(ctx, rnd, minLen, maxLen));
-        } else if (mainSymbol === '´') {
-          add(deadKeyWordLine(ctx, rnd, pickVowels(ctx.letters), minLen, maxLen));
-        } else if (mainSymbol === '?') {
-          add(guard % 2 ? questionLine(ctx, rnd, minLen, maxLen) : quotedLine(ctx, rnd, minLen, maxLen));
-        } else {
-          add(symbolWordLine(ctx, rnd, minLen, maxLen, mainSymbol));
-        }
-      } else if (guard % 3 === 0) {
-        add(nl(ctx, randomGroups(ctx.letters, focusPool, rnd, minLen, maxLen, 3 + (guard % 2))));
-      } else {
-        var line = letterWordLines(ctx, rnd, 1, minLen, maxLen)[0];
-        if (kind === 'shift') line = forceCaps(line);
-        add(line);
-      }
-    }
-    return extras;
-  }
+  var DRILL_COUNT = 3;
 
   function lessonLines(bundle, ctx, rnd, kind) {
     var lines = [];
@@ -893,22 +935,23 @@
       }
     }
 
-    // Každá lekce má 20 cvičení: seznámení, procvičení, slova i plynulost.
-    take(bundle.intro, 4);
-    take(bundle.practice, 4);
-    take(bundle.words, 4);
-    take(bundle.fluency, 5);
+    // První tři cvičení jsou vždy rozcvička s novým písmenem nebo znakem.
+    take(bundle.intro, DRILL_COUNT);
+    if (lines.length < DRILL_COUNT) take(bundle.practice, DRILL_COUNT - lines.length);
 
-    var extras = extraLessonLines(ctx, rnd, kind, lines);
-    for (var e = 0; e < extras.length && lines.length < EXERCISES_PER_LESSON; e++) {
-      lines.push(extras[e]);
+    // Zbytek lekce tvoří skutečná slova z dosud naučených písmen.
+    // Jen v prvních lekcích, kde taková slova ještě neexistují, se
+    // doplní procvičovací skupiny.
+    var wordLines = wordExerciseLines(ctx, rnd, kind, EXERCISES_PER_LESSON - lines.length + 4);
+    for (var w = 0; w < wordLines.length && lines.length < EXERCISES_PER_LESSON; w++) {
+      if (lines.indexOf(wordLines[w]) === -1) lines.push(wordLines[w]);
     }
 
-    if (!lines.length) {
+    if (lines.length < EXERCISES_PER_LESSON) {
       var fallback = bundle.intro && bundle.intro.length
         ? bundle.intro[0]
         : (bundle.practice && bundle.practice[0]) || '';
-      if (fallback) lines.push(fallback);
+      if (fallback && lines.indexOf(fallback) === -1) lines.push(fallback);
     }
     return lines.slice(0, EXERCISES_PER_LESSON);
   }

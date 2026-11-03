@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lekce – 10fingerstyping</title>
 <meta name="description" content="Lekce psaní všemi deseti – jeden tábor, jedna lekce. Nejdřív klávesa a prst, potom opisování předlohy.">
-<link rel="stylesheet" href="style.css?v=21">
+<link rel="stylesheet" href="style.css?v=22">
 <script>
   (function(){
     var t = localStorage.getItem('theme');
@@ -359,7 +359,7 @@
 <div id="toast"></div>
 
 <script src="api.js"></script>
-<script src="lekce-data.js"></script>
+<script src="lekce-data.js?v=22"></script>
 <script>
 (function(){
   'use strict';
@@ -1458,15 +1458,30 @@
     var typed = checked ? session.lastTyped : '';
     var html = '';
 
-    for(var i = 0; i < line.length; i++){
-      var ch = line.charAt(i);
-      var cls = 'tch' + charClass(ch);
-      if(checked) cls += typed.charAt(i) === ch ? ' is-ok' : ' is-bad';
-      html += '<span class="' + cls + '">' + charGlyph(ch) + '</span>';
-    }
-
-    if(checked && typed.length > line.length){
-      html += '<span class="target-extra">+' + (typed.length - line.length) + ' znaků navíc</span>';
+    if(checked){
+      var alignment = alignText(line, typed);
+      var extraCount = 0;
+      for(var a = 0; a < alignment.length; a++){
+        var op = alignment[a];
+        var opCls = 'tch' + charClass(op.ch);
+        if(op.type === 'match'){
+          opCls += ' is-ok';
+        } else if(op.type === 'extra'){
+          opCls += ' is-extra';
+          extraCount++;
+        } else {
+          opCls += ' is-bad';
+        }
+        html += '<span class="' + opCls + '">' + charGlyph(op.ch) + '</span>';
+      }
+      if(extraCount){
+        html += '<span class="target-extra">+' + extraCount + ' znaků navíc</span>';
+      }
+    } else {
+      for(var i = 0; i < line.length; i++){
+        var ch = line.charAt(i);
+        html += '<span class="tch' + charClass(ch) + '">' + charGlyph(ch) + '</span>';
+      }
     }
 
     el.targetText.innerHTML = html;
@@ -1485,6 +1500,53 @@
     return '';
   }
 
+  // Porovnání pomocí Levenshteinovy vzdálenosti. Jeden znak navíc nebo
+  // chybějící znak tak posune jen jedno místo a zbytek řádku zůstane
+  // správně zarovnaný.
+  function alignText(target, typed){
+    var n = target.length;
+    var m = typed.length;
+    var dp = [];
+    var i;
+    var j;
+
+    for(i = 0; i <= n; i++) dp[i] = new Array(m + 1);
+    for(i = 0; i <= n; i++) dp[i][m] = n - i;
+    for(j = 0; j <= m; j++) dp[n][j] = m - j;
+
+    for(i = n - 1; i >= 0; i--){
+      for(j = m - 1; j >= 0; j--){
+        if(target.charAt(i) === typed.charAt(j)){
+          dp[i][j] = dp[i + 1][j + 1];
+        } else {
+          dp[i][j] = 1 + Math.min(dp[i + 1][j + 1], dp[i + 1][j], dp[i][j + 1]);
+        }
+      }
+    }
+
+    var ops = [];
+    i = 0;
+    j = 0;
+    while(i < n || j < m){
+      if(i < n && j < m && target.charAt(i) === typed.charAt(j)){
+        ops.push({ type: 'match', ch: target.charAt(i) });
+        i++;
+        j++;
+      } else if(i < n && j < m && dp[i][j] === dp[i + 1][j + 1] + 1){
+        ops.push({ type: 'subst', ch: target.charAt(i) });
+        i++;
+        j++;
+      } else if(i < n && dp[i][j] === dp[i + 1][j] + 1){
+        ops.push({ type: 'missing', ch: target.charAt(i) });
+        i++;
+      } else {
+        ops.push({ type: 'extra', ch: typed.charAt(j) });
+        j++;
+      }
+    }
+    return ops;
+  }
+
   function checkExercise(){
     var session = state.session;
     if(!session || state.step !== 'exercise') return;
@@ -1497,18 +1559,21 @@
     }
 
     var target = exerciseTarget();
-    var length = Math.max(target.length, typed.length);
+    var alignment = alignText(target, typed);
     var correct = 0;
     var errors = 0;
+    var extraCount = 0;
 
-    for(var i = 0; i < length; i++){
-      if(i < target.length && i < typed.length && target.charAt(i) === typed.charAt(i)){
+    for(var i = 0; i < alignment.length; i++){
+      if(alignment[i].type === 'match'){
         correct++;
       } else {
         errors++;
+        if(alignment[i].type === 'extra') extraCount++;
       }
     }
 
+    var length = Math.max(target.length, typed.length);
     var accuracy = length ? (correct / length * 100) : 100;
     var elapsed = session.startedAt ? Math.max(1, Math.round((Date.now() - session.startedAt) / 1000)) : 1;
     var wpm = (correct / 5) / (elapsed / 60);
@@ -1525,7 +1590,7 @@
     writeStoredSession();
 
     renderExerciseTarget(true);
-    renderExerciseCheck(accuracy, errors, elapsed, wpm, typed.length > target.length);
+    renderExerciseCheck(accuracy, errors, elapsed, wpm, extraCount > 0);
   }
 
   function renderExerciseCheck(accuracy, errors, elapsed, wpm, hasExtra){
@@ -1537,7 +1602,7 @@
     if(perfect){
       note = 'Přesně opsáno, bez chyby.';
     } else if(hasExtra){
-      note = 'V přepisu je víc znaků, než má předloha. Červeně jsou označená místa, která nesouhlasí.';
+      note = 'V přepisu je znak navíc. Je zvýrazněný a zbytek předlohy zůstává zarovnaný.';
     } else {
       note = 'Červeně jsou označená místa, která nesouhlasí s předlohou. Pokračuj tlačítkem níže.';
     }
@@ -1761,7 +1826,9 @@
       var accuracy = lastResult.length ? (lastResult.correct / lastResult.length * 100) : 100;
       var elapsed = Math.max(1, lastResult.elapsed || 1);
       var wpm = (lastResult.correct / 5) / (elapsed / 60);
-      renderExerciseCheck(accuracy, lastResult.errors || 0, elapsed, wpm, saved.lastTyped.length > exerciseTarget().length);
+      var restoredAlignment = alignText(exerciseTarget(), saved.lastTyped);
+      var restoredExtra = restoredAlignment.some(function(op){ return op.type === 'extra'; });
+      renderExerciseCheck(accuracy, lastResult.errors || 0, elapsed, wpm, restoredExtra);
     } else {
       state.step = 'exercise';
       if(session.results.length > session.index) session.results = session.results.slice(0, session.index);

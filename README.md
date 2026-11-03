@@ -40,8 +40,9 @@ stránce `profil.html`.
 ## Lekce
 
 - 26 jednotek, každá pro jedno písmeno (od domovské řady dál).
-- 46 lekcí celkem, každá má 20 cvičení: seznámení, procvičení, slova
-  a plynulost.
+- 46 lekcí celkem, každá má 20 cvičení: první 3 jsou rozcvička s novým
+  písmenem, zbytek tvoří skutečná slova z už naučených písmen. Kde taková
+  slova ještě neexistují, doplní je procvičovací skupiny.
 - První lekce jednotky zobrazí klávesu na klávesnici, příslušný prst a základní
   pravidla.
 - Cvičení vždy obsahují i všechna předchozí písmena.
